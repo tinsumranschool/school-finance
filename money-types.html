@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ประเภทเงินและหมวด — ระบบบัญชีการเงิน</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><img src="assets/img/logo-obec.png" alt="" class="sidebar-logo" onerror="this.style.display='none'"><div class="sidebar-title">ระบบบัญชีการเงิน<br><small>โรงเรียน สพฐ.</small></div></div>
+    <div class="sidebar-user"><img src="assets/img/default-avatar.png" class="sidebar-user-photo" id="user-photo"><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name"></div><div class="sidebar-user-role" id="user-role"></div></div></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="transactions.html" class="nav-item"><span class="nav-icon">📒</span> สมุดเงินสด</a>
+      <div class="nav-section-label">จัดการระบบ</div>
+      <a href="money-types.html" class="nav-item active" data-role="admin"><span class="nav-icon">🏷️</span> ประเภทเงินและหมวด</a>
+      <a href="settings.html" class="nav-item" data-role="admin"><span class="nav-icon">⚙️</span> ตั้งค่าระบบ</a>
+      <a href="users.html" class="nav-item" data-role="admin"><span class="nav-icon">👤</span> จัดการผู้ใช้งาน</a>
+    </nav>
+    <div class="sidebar-footer"><div class="sidebar-status"><span class="status-dot"></span>ระบบทำงานปกติ</div><button class="btn btn-sm" onclick="logout()" style="background:rgba(255,255,255,0.1);color:#fff;border:none">ออก</button></div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div class="top-bar-title">🏷️ ประเภทเงินและหมวด</div>
+      </div>
+      <div class="top-bar-actions">
+        <button class="btn btn-primary btn-sm" data-role="admin" onclick="openModal('add-type-modal')">+ เพิ่มประเภทเงิน</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header">
+          <div class="card-title">ประเภทเงินทั้งหมด</div>
+          <div style="font-size:.78rem;color:var(--text-muted)">ใช้กำหนด dropdown ในสมุดเงินสด และกำหนดว่าเงินนั้นอยู่ในหมวดไหน</div>
+        </div>
+        <div class="card-body" style="padding:0"><div class="table-wrapper">
+          <table>
+            <thead><tr><th>#</th><th>ประเภทเงิน</th><th>หมวดเงิน (3 หมวดหลัก)</th><th>คำอธิบาย</th><th data-role="admin">จัดการ</th></tr></thead>
+            <tbody id="type-tbody"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
+          </table>
+        </div></div>
+      </div>
+
+      <!-- หมวดหลัก 3 หมวด อธิบาย -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+        <div class="card" style="border-left:4px solid #2980b9">
+          <div class="card-body" style="padding:14px 16px">
+            <div style="font-weight:700;color:#2980b9;margin-bottom:4px">เงินรายได้แผ่นดิน</div>
+            <div style="font-size:.8rem;color:var(--text-muted)">ดอกเบี้ยเงินฝาก รายได้ที่ต้องส่งคลัง</div>
+          </div>
+        </div>
+        <div class="card" style="border-left:4px solid #8e44ad">
+          <div class="card-body" style="padding:14px 16px">
+            <div style="font-weight:700;color:#8e44ad;margin-bottom:4px">เงินงบประมาณ</div>
+            <div style="font-size:.8rem;color:var(--text-muted)">เงินอุดหนุนทั่วไปจาก สพฐ. งบประมาณรัฐ</div>
+          </div>
+        </div>
+        <div class="card" style="border-left:4px solid #27ae60">
+          <div class="card-body" style="padding:14px 16px">
+            <div style="font-weight:700;color:#27ae60;margin-bottom:4px">เงินนอกงบประมาณ</div>
+            <div style="font-size:.8rem;color:var(--text-muted)">รายได้สถานศึกษา กิจกรรม อาหารกลางวัน บริจาค</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add Money Type Modal -->
+<div class="modal-overlay" id="add-type-modal" style="display:none" onclick="if(event.target===this)closeModal('add-type-modal')">
+  <div class="modal-box">
+    <div class="modal-title" id="type-modal-title">เพิ่มประเภทเงิน</div>
+    <input type="hidden" id="edit-type-original">
+    <div class="form-grid">
+      <div class="form-group"><label>ชื่อประเภทเงิน <span class="required">*</span></label><input type="text" id="new-type" placeholder="เช่น เงินกองทุนพัฒนาครู"></div>
+      <div class="form-group"><label>หมวดเงิน <span class="required">*</span></label>
+        <select id="new-category">
+          <option value="">เลือก...</option>
+          <option value="เงินรายได้แผ่นดิน">เงินรายได้แผ่นดิน</option>
+          <option value="เงินงบประมาณ">เงินงบประมาณ</option>
+          <option value="เงินนอกงบประมาณ">เงินนอกงบประมาณ</option>
+        </select>
+      </div>
+      <div class="form-group full-width"><label>คำอธิบาย</label><input type="text" id="new-desc" placeholder="อธิบายแหล่งที่มาหรือวัตถุประสงค์"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('add-type-modal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveMoneyType()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/api.js"></script>
+<script>
+let _isEditing = false;
+const catColors = { 'เงินรายได้แผ่นดิน':'badge-info', 'เงินงบประมาณ':'badge-warning', 'เงินนอกงบประมาณ':'badge-success' };
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!requireAnyLogin()) return;
+  await loadSystemConfig(); renderUserInfo(); applyRoleVisibility(); loadTypes();
+});
+
+async function loadTypes() {
+  const res = await API.getMoneyTypes();
+  const tbody = document.getElementById('type-tbody');
+  const isAdm = getCurrentUser()?.role === 'admin';
+  const types = res.moneyTypes || [];
+  if (!types.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>'; return; }
+  tbody.innerHTML = types.map((t, i) => `<tr>
+    <td style="color:var(--text-muted)">${i+1}</td>
+    <td><strong>${t.type}</strong></td>
+    <td><span class="badge ${catColors[t.category]||'badge-muted'}">${t.category}</span></td>
+    <td style="font-size:.82rem;color:var(--text-muted)">${t.description||'—'}</td>
+    ${isAdm ? `<td><button class="btn btn-sm btn-secondary" onclick="editType('${t.type}','${t.category}','${t.description||''}')">✏️ แก้ไข</button></td>` : '<td></td>'}
+  </tr>`).join('');
+}
+
+function editType(type, category, desc) {
+  _isEditing = true;
+  document.getElementById('type-modal-title').textContent = 'แก้ไขประเภทเงิน';
+  document.getElementById('edit-type-original').value = type;
+  document.getElementById('new-type').value     = type;
+  document.getElementById('new-type').disabled  = true; // ไม่ให้เปลี่ยนชื่อ (เป็น key)
+  document.getElementById('new-category').value = category;
+  document.getElementById('new-desc').value     = desc;
+  openModal('add-type-modal');
+}
+
+async function saveMoneyType() {
+  const type     = document.getElementById('new-type').value.trim();
+  const category = document.getElementById('new-category').value;
+  const desc     = document.getElementById('new-desc').value.trim();
+  if (!type || !category) { showToast('กรอกข้อมูลให้ครบ','warning'); return; }
+
+  let res;
+  if (_isEditing) {
+    res = await apiCall('updateMoneyType', { type, category, description: desc });
+  } else {
+    res = await apiCall('addMoneyType', { type, category, description: desc });
+  }
+
+  if (res.success) {
+    showToast(_isEditing ? 'แก้ไขสำเร็จ' : 'เพิ่มสำเร็จ','success');
+    closeModal('add-type-modal');
+    document.getElementById('new-type').disabled = false;
+    document.getElementById('new-type').value = '';
+    document.getElementById('new-category').value = '';
+    document.getElementById('new-desc').value = '';
+    _isEditing = false;
+    loadTypes();
+  } else {
+    showToast(res.error || 'เกิดข้อผิดพลาด','error');
+  }
+}
+</script>
+</body>
+</html>

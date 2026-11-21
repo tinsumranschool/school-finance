@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — ระบบบัญชีการเงินโรงเรียน</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="assets/img/logo-obec.png" alt="สพฐ." class="sidebar-logo" onerror="this.style.display='none'">
+      <div class="sidebar-title">ระบบบัญชีการเงิน<br><small>โรงเรียน สพฐ.</small></div>
+    </div>
+    <div class="sidebar-user">
+      <img src="assets/img/default-avatar.png" alt="user" class="sidebar-user-photo" id="user-photo">
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="user-name">กำลังโหลด...</div>
+        <div class="sidebar-user-role" id="user-role"></div>
+      </div>
+    </div>
+    <div class="sidebar-cash">
+      <div class="sidebar-cash-label">เงินสดคงเหลือวันนี้</div>
+      <div class="sidebar-cash-value" id="sidebar-cash-balance">กำลังโหลด...</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">หน้าหลัก</div>
+      <a href="dashboard.html" class="nav-item active"><span class="nav-icon">🏠</span> Dashboard</a>
+
+      <div class="nav-section-label">บันทึกบัญชี</div>
+      <a href="transactions.html" class="nav-item"><span class="nav-icon">📒</span> สมุดเงินสด</a>
+      <a href="bank-accounts.html" class="nav-item"><span class="nav-icon">🏦</span> บัญชีธนาคาร</a>
+      <a href="vendors.html" class="nav-item"><span class="nav-icon">👥</span> ผู้รับเงินและผู้ขาย</a>
+
+      <div class="nav-section-label">รายงาน</div>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">📊</span> รายงานทั้งหมด</a>
+      <a href="register-report.html" class="nav-item"><span class="nav-icon">📋</span> ทะเบียนเงิน 3 หมวด</a>
+      <a href="bank-recon.html" class="nav-item"><span class="nav-icon">⚖️</span> กระทบยอดธนาคาร</a>
+
+      <div class="nav-section-label">จัดการระบบ</div>
+      <a href="fiscal-year.html" class="nav-item" data-role="admin,director"><span class="nav-icon">📅</span> เปิด/ปิดปีงบประมาณ</a>
+      <a href="users.html" class="nav-item" data-role="admin"><span class="nav-icon">👤</span> จัดการผู้ใช้งาน</a>
+      <a href="money-types.html" class="nav-item" data-role="admin"><span class="nav-icon">🏷️</span> ประเภทเงินและหมวด</a>
+      <a href="settings.html" class="nav-item" data-role="admin"><span class="nav-icon">⚙️</span> ตั้งค่าระบบ</a>
+      <a href="audit-log.html" class="nav-item" data-role="admin"><span class="nav-icon">🔍</span> Audit Log</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-status"><span class="status-dot"></span> ระบบทำงานปกติ</div>
+      <button class="btn btn-sm" onclick="logout()" style="background:rgba(255,255,255,0.1);color:#fff;border:none">ออก</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div>
+          <div class="top-bar-title" id="school-name-topbar">ระบบบัญชีการเงิน</div>
+          <div style="font-size:0.72rem;color:var(--text-muted)">ปีงบประมาณ <span id="fiscal-year-display">2568</span></div>
+        </div>
+      </div>
+      <div class="top-bar-actions">
+        <span id="last-updated" style="font-size:0.75rem;color:var(--text-muted)"></span>
+        <button class="btn btn-sm btn-secondary" onclick="loadDashboard()">🔄 รีเฟรช</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="kpi-label">💰 เงินรับรวม ปีงบประมาณ</div>
+          <div class="kpi-value" id="kpi-income">กำลังโหลด...</div>
+          <div class="kpi-delta" id="kpi-income-delta"></div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">💳 เงินจ่ายรวม ปีงบประมาณ</div>
+          <div class="kpi-value" id="kpi-expense">—</div>
+          <div class="kpi-delta" id="kpi-expense-delta"></div>
+        </div>
+        <div class="kpi-card orange">
+          <div class="kpi-label">💵 เงินสดคงเหลือ ณ วันนี้</div>
+          <div class="kpi-value" id="kpi-cash">—</div>
+          <div class="kpi-delta" id="kpi-cash-delta"></div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-label">🏦 เงินฝากธนาคารรวม</div>
+          <div class="kpi-value" id="kpi-bank">—</div>
+          <div class="kpi-delta" id="kpi-bank-delta"></div>
+        </div>
+      </div>
+
+      <!-- Row 1: Money Flow + Monthly Chart -->
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">💹 เส้นทางการเงิน (Money Flow)</div>
+            <a href="transactions.html" style="font-size:0.78rem;color:var(--navy-light)">ดูรายละเอียด →</a>
+          </div>
+          <div class="card-body" style="padding-bottom:12px">
+            <svg id="money-flow-svg" class="money-flow-svg" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg"></svg>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📈 สรุปผลการเงิน</div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm" id="chart-tab-month" onclick="switchChartTab('month')">รายเดือน</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:12px">
+            <canvas id="monthly-chart" height="160"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Pie + Bank Status + Alerts -->
+      <div class="dashboard-row">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🥧 สัดส่วนการใช้จ่าย</div></div>
+          <div class="card-body" style="display:flex;align-items:center;gap:16px;padding:12px 20px">
+            <canvas id="pie-chart" width="140" height="140" style="flex-shrink:0"></canvas>
+            <div id="pie-legend" style="font-size:0.78rem;line-height:2"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🏦 สถานะกระทบยอดธนาคาร</div>
+            <a href="reports.html#recon" style="font-size:0.78rem;color:var(--navy-light)">ดูหมด →</a>
+          </div>
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>ธนาคาร</th><th>ยอด (บาท)</th><th>สถานะ</th></tr></thead>
+              <tbody id="bank-status-tbody">
+                <tr><td colspan="3" class="skeleton-cell" style="height:60px"></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔔 การแจ้งเตือนสำคัญ <span id="alert-count" class="badge badge-danger" style="display:none"></span></div>
+          </div>
+          <div class="card-body" style="padding:12px;max-height:200px;overflow-y:auto" id="alerts-container">
+            <div class="skeleton-cell" style="height:40px;margin-bottom:8px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- หมวดเงิน Table -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-title">📋 ยอดรวมแยกตามหมวดเงิน</div></div>
+        <div class="card-body" style="padding:0">
+          <table>
+            <thead>
+              <tr><th>หมวดเงิน</th><th>ยอดยกมา</th><th>รับรวม</th><th>จ่ายรวม</th><th>คงเหลือ</th></tr>
+            </thead>
+            <tbody id="categories-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /page-content -->
+  </main>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/dashboard.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (!requireAnyLogin()) return;
+    await loadSystemConfig();
+    renderUserInfo();
+    applyRoleVisibility();
+    loadDashboard();
+    loadSidebarStats();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เข้าสู่ระบบ — ระบบบัญชีการเงินโรงเรียน สพฐ.</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <style>
+    body { background: linear-gradient(135deg, #1e3a5f 0%, #2a5298 60%, #0d7377 100%); display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .login-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 40px 36px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-logo { width: 72px; height: 72px; margin: 0 auto 12px; display: block; }
+    .login-system-name { font-size: 1.1rem; font-weight: 700; color: #1e3a5f; margin-bottom: 4px; }
+    .login-subtitle { font-size: 0.82rem; color: #6b7a8d; margin-bottom: 28px; }
+    .login-divider { border: none; border-top: 1px solid #e2e8f0; margin: 20px 0; }
+    .login-info { font-size: 0.78rem; color: #a0aec0; margin-top: 20px; }
+    .login-info a { color: #2a5298; }
+    .login-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; margin-bottom: 14px; display: none; }
+    .login-spinner { display: none; justify-content: center; align-items: center; gap: 10px; color: #6b7a8d; font-size: 0.88rem; }
+    .login-welcome { font-size: 1.5rem; font-weight: 300; color: #2a5298; margin-bottom: 8px; }
+    .login-motto { font-size: 0.8rem; color: #94a3b8; font-style: italic; margin-bottom: 24px; }
+    #google-btn-wrapper { display: flex; justify-content: center; }
+  </style>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <div class="login-card">
+    <img src="assets/img/logo-obec.png" alt="สพฐ." class="login-logo"
+         onerror="this.style.display='none'">
+
+    <div class="login-system-name">ระบบบัญชีการเงินโรงเรียน สพฐ.</div>
+    <div class="login-welcome">ยินดีต้อนรับ</div>
+    <div class="login-motto">"โปร่งใส ตรวจสอบได้ บริหารอย่างมีประสิทธิภาพ"</div>
+
+    <div class="login-error" id="login-error"></div>
+    <div class="login-spinner" id="login-spinner">
+      <div class="spinner"></div>
+      <span>กำลังเข้าสู่ระบบ...</span>
+    </div>
+
+    <div id="google-btn-wrapper"></div>
+
+    <hr class="login-divider">
+    <div class="login-info">
+      เข้าใช้งานด้วยบัญชี Google ที่ได้รับสิทธิ์เท่านั้น<br>
+      ติดต่อผู้ดูแลระบบหากไม่สามารถเข้าใช้งานได้
+    </div>
+    <div id="school-name-display" style="margin-top:16px;font-size:0.82rem;color:#94a3b8;"></div>
+  </div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // ตรวจ error param
+      const params = new URLSearchParams(location.search);
+      if (params.get('error') === 'session_expired') showLoginError('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
+      if (params.get('error') === 'unauthorized')    showLoginError('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+
+      // โหลด config
+      await loadSystemConfig();
+
+      // แสดงชื่อโรงเรียน
+      if (window.AppConfig.gasUrl) {
+        try {
+          const res = await fetch(window.AppConfig.gasUrl + '?action=getConfig&token=public');
+          const cfg = await res.json();
+          if (cfg.schoolName) document.getElementById('school-name-display').textContent = cfg.schoolName;
+        } catch(e) {}
+      }
+
+      // ถ้า login อยู่แล้ว redirect
+      if (isLoggedIn()) { window.location.href = 'dashboard.html'; return; }
+
+      // Init Google Sign-In
+      initGoogleAuth();
+      renderGoogleButton('google-btn-wrapper');
+    });
+  </script>
+</body>
+</html>

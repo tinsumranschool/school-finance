@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Log — ระบบบัญชีการเงิน</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><img src="assets/img/logo-obec.png" alt="" class="sidebar-logo" onerror="this.style.display='none'"><div class="sidebar-title">ระบบบัญชีการเงิน<br><small>โรงเรียน สพฐ.</small></div></div>
+    <div class="sidebar-user"><img src="assets/img/default-avatar.png" class="sidebar-user-photo" id="user-photo"><div class="sidebar-user-info"><div class="sidebar-user-name" id="user-name"></div><div class="sidebar-user-role" id="user-role"></div></div></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="transactions.html" class="nav-item"><span class="nav-icon">📒</span> สมุดเงินสด</a>
+      <a href="reports.html" class="nav-item"><span class="nav-icon">📊</span> รายงาน</a>
+      <div class="nav-section-label">จัดการระบบ</div>
+      <a href="fiscal-year.html" class="nav-item"><span class="nav-icon">📅</span> เปิด/ปิดปีงบ</a>
+      <a href="users.html" class="nav-item"><span class="nav-icon">👤</span> จัดการผู้ใช้งาน</a>
+      <a href="settings.html" class="nav-item"><span class="nav-icon">⚙️</span> ตั้งค่าระบบ</a>
+      <a href="audit-log.html" class="nav-item active"><span class="nav-icon">🔍</span> Audit Log</a>
+    </nav>
+    <div class="sidebar-footer"><div class="sidebar-status"><span class="status-dot"></span>ระบบทำงานปกติ</div><button class="btn btn-sm" onclick="logout()" style="background:rgba(255,255,255,0.1);color:#fff;border:none">ออก</button></div>
+  </aside>
+  <main class="main-content">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div class="top-bar-title">🔍 Audit Log</div>
+      </div>
+      <div class="top-bar-actions">
+        <input type="text" id="audit-search" placeholder="ค้นหา action/email..." style="padding:7px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:.85rem" oninput="filterLogs()">
+        <button class="btn btn-secondary btn-sm" onclick="exportAudit()">📥 Export</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadAuditLog()">🔄</button>
+      </div>
+    </header>
+    <div class="page-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">ประวัติการใช้งานระบบ</div>
+          <div style="font-size:.78rem;color:var(--text-muted)">แสดง 500 รายการล่าสุด</div>
+        </div>
+        <div class="card-body" style="padding:0"><div class="table-wrapper">
+          <table>
+            <thead><tr><th>เวลา</th><th>Action</th><th>ผู้ดำเนินการ</th><th>รายละเอียด</th><th>แถวที่</th></tr></thead>
+            <tbody id="audit-tbody"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
+          </table>
+        </div></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/api.js"></script>
+<script>
+let _allLogs = [];
+const actionColors = {
+  ADD_TRANSACTION:    'badge-success',
+  UPDATE_TRANSACTION: 'badge-warning',
+  DELETE_TRANSACTION: 'badge-danger',
+  CLOSE_FISCAL_YEAR:  'badge-danger',
+  OPEN_FISCAL_YEAR:   'badge-success',
+  ADD_USER:           'badge-info',
+  UPDATE_USER:        'badge-warning',
+  UPDATE_CONFIG:      'badge-warning',
+  ADD_BANK_ACCOUNT:   'badge-info',
+  ADD_VENDOR:         'badge-info',
+  SYSTEM_SETUP:       'badge-muted',
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!requireRole('admin')) return;
+  await loadSystemConfig(); renderUserInfo(); applyRoleVisibility();
+  loadAuditLog();
+});
+
+async function loadAuditLog() {
+  document.getElementById('audit-tbody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px">กำลังโหลด...</td></tr>';
+  try {
+    const res = await API.getAuditLog();
+    _allLogs = res.logs || [];
+    renderLogs(_allLogs);
+  } catch(e) { showToast('โหลดไม่สำเร็จ','error'); }
+}
+
+function filterLogs() {
+  const q = document.getElementById('audit-search').value.toLowerCase();
+  renderLogs(_allLogs.filter(l =>
+    (l.action||'').toLowerCase().includes(q) ||
+    (l.userEmail||'').toLowerCase().includes(q) ||
+    (l.detail||'').toLowerCase().includes(q)
+  ));
+}
+
+function renderLogs(logs) {
+  const tbody = document.getElementById('audit-tbody');
+  if (!logs.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่พบรายการ</td></tr>'; return; }
+  tbody.innerHTML = logs.map(l => {
+    const cls = actionColors[l.action] || 'badge-muted';
+    let detail = l.detail || '';
+    try { const obj = JSON.parse(detail); detail = Object.entries(obj).map(([k,v]) => `<span style="color:var(--text-muted)">${k}:</span> ${v}`).join(' · '); } catch(e) {}
+    return `<tr>
+      <td style="white-space:nowrap;font-size:.78rem">${formatThaiDateTime(l.timestamp)}</td>
+      <td><span class="badge ${cls}" style="font-size:.7rem">${l.action||''}</span></td>
+      <td style="font-size:.8rem">${l.userEmail||'—'}</td>
+      <td style="font-size:.78rem;color:var(--text-muted);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.detail||''}">${detail}</td>
+      <td style="font-size:.8rem">${l.rowAffected||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function exportAudit() {
+  if (!_allLogs.length) { showToast('ไม่มีข้อมูล','warning'); return; }
+  exportCSV(_allLogs, `audit-log_${todayISO()}.csv`);
+}
+</script>
+</body>
+</html>
