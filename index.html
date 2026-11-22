@@ -1,12 +1,702 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>เข้าสู่ระบบ — ระบบบัญชีการเงินโรงเรียน สพฐ.</title>
-  <link rel="stylesheet" href="assets/css/main.css">
-  <style>
-    body { background: linear-gradient(135deg, #1e3a5f 0%, #2a5298 60%, #0d7377 100%); display:flex; align-items:center; justify-content:center; min-height:100vh; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบบัญชีการเงินโรงเรียน สพฐ.</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   main.css — Thai School Finance System
+   Font: Sarabun (Google Fonts) | Palette: Navy + Gold + White
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+/* ===== CSS Variables ===== */
+:root {
+  --navy:        #1e3a5f;
+  --navy-dark:   #122440;
+  --navy-light:  #2a5298;
+  --gold:        #c9a227;
+  --gold-light:  #f5c842;
+  --teal:        #0d7377;
+  --success:     #27ae60;
+  --warning:     #e67e22;
+  --danger:      #e74c3c;
+  --info:        #2980b9;
+  --bg:          #f0f4f8;
+  --surface:     #ffffff;
+  --border:      #d1dbe8;
+  --text-main:   #1a2a3a;
+  --text-muted:  #6b7a8d;
+  --text-light:  #a0aec0;
+  --sidebar-w:   240px;
+  --header-h:    64px;
+  --radius:      10px;
+  --shadow:      0 2px 12px rgba(30,58,95,0.10);
+  --shadow-lg:   0 8px 32px rgba(30,58,95,0.16);
+  --transition:  0.22s ease;
+}
+
+/* ===== Reset ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; scroll-behavior: smooth; }
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: var(--bg);
+  color: var(--text-main);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+a { color: var(--navy-light); text-decoration: none; }
+img { max-width: 100%; }
+button { cursor: pointer; font-family: inherit; }
+
+/* ===== Layout ===== */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+  width: var(--sidebar-w);
+  background: linear-gradient(180deg, var(--navy-dark) 0%, var(--navy) 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  transition: transform var(--transition);
+}
+
+.sidebar-header {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sidebar-logo { width: 40px; height: 40px; object-fit: contain; }
+.sidebar-title { font-size: 0.82rem; font-weight: 600; line-height: 1.3; }
+.sidebar-title small { font-weight: 400; opacity: 0.75; font-size: 0.72rem; }
+
+.sidebar-user {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-user-photo {
+  width: 38px; height: 38px; border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--gold);
+  flex-shrink: 0;
+}
+.sidebar-user-info { min-width: 0; }
+.sidebar-user-name  { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-user-role  { font-size: 0.72rem; opacity: 0.7; }
+
+.sidebar-cash {
+  margin: 10px 16px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+.sidebar-cash-label { opacity: 0.7; }
+.sidebar-cash-value { font-size: 1rem; font-weight: 700; color: var(--gold-light); }
+.sidebar-cash-value.negative { color: #ff7979; }
+
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+.nav-section-label {
+  padding: 10px 16px 4px;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.45;
+  font-weight: 600;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.82);
+  border-left: 3px solid transparent;
+  transition: all var(--transition);
+  cursor: pointer;
+}
+.nav-item:hover, .nav-item.active {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border-left-color: var(--gold);
+}
+.nav-item.active { font-weight: 600; }
+.nav-icon { width: 18px; text-align: center; flex-shrink: 0; }
+
+.sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.72rem;
+  opacity: 0.5;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sidebar-status { display: flex; align-items: center; gap: 4px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ===== Main Content ===== */
+.main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.top-bar {
+  height: var(--header-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  box-shadow: 0 1px 4px rgba(30,58,95,0.06);
+}
+.top-bar-title { font-size: 1.05rem; font-weight: 600; color: var(--navy); }
+.top-bar-actions { display: flex; align-items: center; gap: 12px; }
+
+.page-content { padding: 24px; flex: 1; }
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.page-title { font-size: 1.3rem; font-weight: 700; color: var(--navy); }
+.page-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
+
+/* ===== KPI Cards ===== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.kpi-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+  border-left: 4px solid transparent;
+}
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  opacity: 0.08;
+}
+.kpi-card.blue   { border-left-color: var(--info);    } .kpi-card.blue::after   { background: var(--info); }
+.kpi-card.green  { border-left-color: var(--success); } .kpi-card.green::after  { background: var(--success); }
+.kpi-card.orange { border-left-color: var(--warning); } .kpi-card.orange::after { background: var(--warning); }
+.kpi-card.purple { border-left-color: #8e44ad;        } .kpi-card.purple::after { background: #8e44ad; }
+
+.kpi-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+.kpi-value { font-size: 1.5rem; font-weight: 700; color: var(--navy); }
+.kpi-delta { font-size: 0.75rem; }
+
+/* ===== Cards & Panels ===== */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-title { font-size: 0.95rem; font-weight: 600; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+.card-body { padding: 20px; }
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.dashboard-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* ===== Money Flow ===== */
+.money-flow-svg { width: 100%; height: 220px; }
+.flow-node { fill: var(--navy); rx: 8; }
+.flow-label { font-family: 'Sarabun', sans-serif; font-size: 12px; fill: #333; }
+.flow-amount { font-family: 'Sarabun', sans-serif; font-size: 11px; fill: #666; }
+
+/* ===== Tables ===== */
+.table-wrapper { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+thead th {
+  background: var(--navy);
+  color: #fff;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
+tbody tr:hover { background: #f7faff; }
+tbody td { padding: 9px 12px; vertical-align: middle; }
+tbody tr:last-child { border-bottom: none; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.badge-success { background: #d4edda; color: #155724; }
+.badge-warning { background: #fff3cd; color: #856404; }
+.badge-danger  { background: #f8d7da; color: #721c24; }
+.badge-info    { background: #d1ecf1; color: #0c5460; }
+.badge-muted   { background: #e9ecef; color: #6c757d; }
+
+/* ===== Forms ===== */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group.full-width { grid-column: 1 / -1; }
+label { font-size: 0.8rem; font-weight: 600; color: var(--text-main); }
+label .required { color: var(--danger); margin-left: 2px; }
+input, select, textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  background: #fff;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--navy-light);
+  box-shadow: 0 0 0 3px rgba(42,82,152,0.12);
+}
+input.error, select.error { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(231,76,60,0.1); }
+input.warning { border-color: var(--warning); }
+.field-error { font-size: 0.75rem; color: var(--danger); display: none; }
+.field-error.show { display: block; }
+.field-warning { font-size: 0.75rem; color: var(--warning); }
+textarea { min-height: 72px; resize: vertical; }
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary   { background: var(--navy); color: #fff; }
+.btn-primary:hover:not(:disabled)   { background: var(--navy-dark); }
+.btn-secondary { background: var(--border); color: var(--text-main); }
+.btn-secondary:hover:not(:disabled) { background: #c8d6e5; }
+.btn-success   { background: var(--success); color: #fff; }
+.btn-success:hover:not(:disabled)   { background: #219a52; }
+.btn-danger    { background: var(--danger); color: #fff; }
+.btn-danger:hover:not(:disabled)    { background: #c0392b; }
+.btn-warning   { background: var(--warning); color: #fff; }
+.btn-gold      { background: var(--gold); color: var(--navy-dark); }
+.btn-sm { padding: 5px 12px; font-size: 0.78rem; }
+.btn-icon { padding: 7px; width: 32px; height: 32px; justify-content: center; }
+
+/* ===== Alerts (checklist) ===== */
+.alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+}
+.alert-error   { background: #fef2f2; border: 1px solid #fecaca; }
+.alert-warn    { background: #fffbeb; border: 1px solid #fde68a; }
+.alert-ok      { background: #f0fdf4; border: 1px solid #bbf7d0; }
+.alert-icon    { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.alert-msg     { font-weight: 500; flex: 1; }
+.alert-detail  { font-size: 0.75rem; color: var(--text-muted); }
+.alert-fix     { font-size: 0.75rem; color: var(--navy-light); text-decoration: underline; cursor: pointer; white-space: nowrap; }
+
+/* ===== Checklist (fiscal year) ===== */
+.check-item {
+  display: grid;
+  grid-template-columns: 28px 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+}
+.check-item.passed { background: #f0fdf4; border-color: #bbf7d0; }
+.check-item.failed { background: #fef2f2; border-color: #fecaca; }
+.check-icon { font-size: 1.1rem; text-align: center; }
+.check-label  { font-weight: 500; font-size: 0.88rem; }
+.check-detail { font-size: 0.75rem; color: var(--danger); }
+.check-fix-link { font-size: 0.75rem; color: var(--navy-light); white-space: nowrap; }
+
+/* ===== Modal ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.modal-overlay.active { opacity: 1; }
+.modal-box {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  min-width: 360px;
+  max-width: 640px;
+  width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: translateY(20px);
+  transition: transform var(--transition);
+  padding: 24px;
+}
+.modal-overlay.active .modal-box { transform: translateY(0); }
+.modal-title { font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 14px; }
+.modal-body  { margin-bottom: 20px; color: var(--text-muted); font-size: 0.9rem; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ===== Toast ===== */
+#toast-container {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px 18px;
+  box-shadow: var(--shadow-lg);
+  border-left: 4px solid var(--info);
+  font-size: 0.88rem;
+  transform: translateX(120%);
+  transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+  min-width: 260px;
+  max-width: 380px;
+}
+.toast.show { transform: translateX(0); }
+.toast-success { border-left-color: var(--success); }
+.toast-error   { border-left-color: var(--danger);  }
+.toast-warning { border-left-color: var(--warning); }
+
+/* ===== Loading ===== */
+.global-loading {
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.loading-box { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--navy);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== Skeleton ===== */
+.skeleton-cell {
+  height: 14px;
+  background: linear-gradient(90deg, #e8edf2 25%, #f4f7fa 50%, #e8edf2 75%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* ===== Offline Banner ===== */
+.offline-banner {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: var(--warning);
+  color: #fff;
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  z-index: 10001;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ===== Delta Badge ===== */
+.delta-badge { font-size: 0.72rem; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+.delta-up   { color: var(--success); background: #d4edda; }
+.delta-down { color: var(--danger);  background: #f8d7da; }
+
+/* ===== Page Pagination ===== */
+.pagination { display: flex; align-items: center; gap: 4px; margin-top: 12px; }
+.page-btn {
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: #fff;
+  font-size: 0.82rem;
+  transition: all var(--transition);
+}
+.page-btn:hover:not(:disabled) { background: var(--navy); color: #fff; border-color: var(--navy); }
+.page-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.page-info { font-size: 0.78rem; color: var(--text-muted); margin-left: 6px; }
+
+/* ===== Filter Bar ===== */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 14px;
+  padding: 14px;
+  background: var(--bg);
+  border-radius: 8px;
+}
+.filter-bar .form-group { min-width: 140px; }
+.filter-bar input, .filter-bar select { font-size: 0.82rem; padding: 7px 10px; }
+
+/* ===== Tabs ===== */
+.tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 16px; }
+.tab-btn {
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.tab-btn.active { color: var(--navy); border-bottom-color: var(--navy); font-weight: 700; }
+.tab-btn:hover:not(.active) { color: var(--navy-light); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ===== Status Indicators ===== */
+.status-ok   { color: var(--success); font-weight: 600; }
+.status-fail { color: var(--danger);  font-weight: 600; }
+.status-warn { color: var(--warning); font-weight: 600; }
+
+/* ===== Responsive ===== */
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .dashboard-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  :root { --sidebar-w: 0px; }
+  .sidebar { transform: translateX(-240px); width: 240px; }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { margin-left: 0; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid-3 { grid-template-columns: 1fr; }
+  .page-content { padding: 14px; }
+  .top-bar { padding: 0 14px; }
+  .menu-toggle { display: flex; }
+}
+
+/* ===== Mobile Menu Toggle ===== */
+.menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+/* ===== Print ===== */
+@media print {
+  .sidebar, .top-bar, .btn, .filter-bar, .pagination, #toast-container { display: none !important; }
+  .main-content { margin-left: 0; }
+  .page-content { padding: 0; }
+  table { font-size: 11px; }
+  thead th { background: #333 !important; color: #fff !important; }
+}
+
+/* ============================================================
+   ADDITIONS — Print CSS, Error Page, GAS Quota, New Pages
+   ============================================================ */
+
+/* ===== Print — ครบสมบูรณ์ ===== */
+@media print {
+  @page { size: A4; margin: 1.5cm; }
+  .sidebar, .top-bar, .btn, .filter-bar, .pagination,
+  #toast-container, .modal-overlay, .menu-toggle,
+  .top-bar-actions, [data-role], .offline-banner { display: none !important; }
+  .main-content { margin-left: 0 !important; }
+  .page-content { padding: 0 !important; }
+  .card { box-shadow: none !important; border: 1px solid #ccc !important; break-inside: avoid; }
+  table { font-size: 10pt; border-collapse: collapse; }
+  thead th { background: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact; }
+  tbody td, tbody th { border: 1px solid #ddd; padding: 5px 8px; }
+  .print-header { display: block !important; text-align: center; margin-bottom: 16px; }
+  .kpi-card { border: 1px solid #ccc !important; box-shadow: none !important; }
+  .kpi-grid { grid-template-columns: repeat(4,1fr) !important; }
+  .recon-card { border: 1px solid #ccc !important; break-inside: avoid; }
+}
+.print-header { display: none; }
+
+/* ===== GAS Quota / Error States ===== */
+.quota-warning {
+  background: #fff3cd; border: 1px solid #ffc107;
+  border-radius: 8px; padding: 12px 16px;
+  font-size: .85rem; color: #856404;
+  display: none; margin-bottom: 12px;
+}
+.quota-warning.show { display: flex; align-items: center; gap: 8px; }
+
+/* ===== Import Modal file input ===== */
+input[type="file"] {
+  padding: 8px 12px;
+  border: 1.5px dashed var(--border);
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: .85rem;
+  background: #fafbfc;
+}
+input[type="file"]:hover { border-color: var(--navy-light); }
+
+/* ===== Bank Recon specific ===== */
+.recon-card { transition: box-shadow var(--transition); }
+.recon-card:hover { box-shadow: var(--shadow-lg); }
+
+/* ===== Money Types badges ===== */
+.badge-warning { background: #fff3cd; color: #856404; }
+
+/* ===== Quick action floating button (mobile) ===== */
+.fab {
+  position: fixed; bottom: 24px; right: 24px;
+  width: 52px; height: 52px;
+  background: var(--navy); color: #fff;
+  border: none; border-radius: 50%;
+  font-size: 1.3rem; cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  display: none; align-items: center; justify-content: center;
+  z-index: 200; transition: transform var(--transition);
+}
+.fab:hover { transform: scale(1.1); }
+@media (max-width: 768px) { .fab { display: flex; } }
+
+/* ===== Tooltip ===== */
+[title] { position: relative; }
+
+/* ===== Number input hide arrows ===== */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { opacity: 1; }
+
+/* ===== Code blocks ===== */
+code {
+  background: #f0f4f8; padding: 2px 6px;
+  border-radius: 4px; font-size: .85em;
+  font-family: 'Courier New', monospace;
+}
+
+/* ===== Empty state ===== */
+.empty-state {
+  text-align: center; padding: 48px 24px; color: var(--text-muted);
+}
+.empty-state-icon { font-size: 3rem; margin-bottom: 12px; }
+.empty-state-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
+.empty-state-desc  { font-size: .85rem; }
+
+/* ===== Stepper ===== */
+.stepper { display: flex; gap: 0; margin-bottom: 24px; }
+.step {
+  flex: 1; text-align: center; padding: 12px 8px;
+  font-size: .78rem; font-weight: 600;
+  border-bottom: 3px solid var(--border); color: var(--text-muted);
+  position: relative; transition: all var(--transition);
+}
+.step.active   { border-bottom-color: var(--navy); color: var(--navy); }
+.step.complete { border-bottom-color: var(--success); color: var(--success); }
+
+/* ===== Notification dot on nav ===== */
+.nav-item .notif-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--danger); margin-left: auto; flex-shrink: 0;
+}
+
+
+    #view-login { background: linear-gradient(135deg, #1e3a5f 0%, #2a5298 60%, #0d7377 100%); display:flex; align-items:center; justify-content:center; min-height:100vh; padding:16px; }
     .login-card {
       background: #fff;
       border-radius: 16px;
@@ -27,12 +717,22 @@
     .login-welcome { font-size: 1.5rem; font-weight: 300; color: #2a5298; margin-bottom: 8px; }
     .login-motto { font-size: 0.8rem; color: #94a3b8; font-style: italic; margin-bottom: 24px; }
     #google-btn-wrapper { display: flex; justify-content: center; }
-  </style>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
+
+/* ---- SPA shell ---- */
+#view-login { display: none; }
+body.in-app { background: var(--bg); }
+.page-view { display: none; }
+.page-view.active { display: contents; }
+
+</style>
 </head>
 <body>
+
+<!-- ===================== หน้าเข้าสู่ระบบ ===================== -->
+<div id="view-login">
   <div class="login-card">
-    <img src="assets/img/logo-obec.png" alt="สพฐ." class="login-logo"
+    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMzgiIGZpbGw9IiMxZTNhNWYiIHN0cm9rZT0iI2M5YTIyNyIgc3Ryb2tlLXdpZHRoPSI0Ii8+CiAgPHRleHQgeD0iNDAiIHk9IjM1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjYzlhMjI3IiBmb250LXNpemU9IjExIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiPuC4quC4nuC4kC48L3RleHQ+CiAgPHRleHQgeD0iNDAiIHk9IjUyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIiBmb250LXNpemU9IjgiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj5PQkVDPC90ZXh0Pgo8L3N2Zz4K" alt="สพฐ." class="login-logo"
          onerror="this.style.display='none'">
 
     <div class="login-system-name">ระบบบัญชีการเงินโรงเรียน สพฐ.</div>
@@ -54,36 +754,3062 @@
     </div>
     <div id="school-name-display" style="margin-top:16px;font-size:0.82rem;color:#94a3b8;"></div>
   </div>
+</div>
 
-  <script src="assets/js/config.js"></script>
-  <script src="assets/js/utils.js"></script>
-  <script src="assets/js/auth.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      // ตรวจ error param
-      const params = new URLSearchParams(location.search);
-      if (params.get('error') === 'session_expired') showLoginError('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
-      if (params.get('error') === 'unauthorized')    showLoginError('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+<!-- ===================== แอป (ทุกหน้าอยู่ในไฟล์นี้) ===================== -->
+<div class="app-layout" id="view-app" style="display:none">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMzgiIGZpbGw9IiMxZTNhNWYiIHN0cm9rZT0iI2M5YTIyNyIgc3Ryb2tlLXdpZHRoPSI0Ii8+CiAgPHRleHQgeD0iNDAiIHk9IjM1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjYzlhMjI3IiBmb250LXNpemU9IjExIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiPuC4quC4nuC4kC48L3RleHQ+CiAgPHRleHQgeD0iNDAiIHk9IjUyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIiBmb250LXNpemU9IjgiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj5PQkVDPC90ZXh0Pgo8L3N2Zz4K" alt="สพฐ." class="sidebar-logo" onerror="this.style.display='none'">
+      <div class="sidebar-title">ระบบบัญชีการเงิน<br><small>โรงเรียน สพฐ.</small></div>
+    </div>
+    <div class="sidebar-user">
+      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iNDAiIGZpbGw9IiNjOWEyMjciLz4KICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjMwIiByPSIxNCIgZmlsbD0iI2ZmZiIvPgogIDxlbGxpcHNlIGN4PSI0MCIgY3k9IjY4IiByeD0iMjIiIHJ5PSIxOCIgZmlsbD0iI2ZmZiIvPgo8L3N2Zz4K" alt="user" class="sidebar-user-photo" id="user-photo">
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="user-name">กำลังโหลด...</div>
+        <div class="sidebar-user-role" id="user-role"></div>
+      </div>
+    </div>
+    <div class="sidebar-cash">
+      <div class="sidebar-cash-label">เงินสดคงเหลือวันนี้</div>
+      <div class="sidebar-cash-value" id="sidebar-cash-balance">กำลังโหลด...</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">หน้าหลัก</div>
+      <a href="#/dashboard" data-page="dashboard" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
 
-      // โหลด config
-      await loadSystemConfig();
+      <div class="nav-section-label">บันทึกบัญชี</div>
+      <a href="#/transactions" data-page="transactions" class="nav-item"><span class="nav-icon">📒</span> สมุดเงินสด</a>
+      <a href="#/bank-accounts" data-page="bank-accounts" class="nav-item"><span class="nav-icon">🏦</span> บัญชีธนาคาร</a>
+      <a href="#/vendors" data-page="vendors" class="nav-item"><span class="nav-icon">👥</span> ผู้รับเงินและผู้ขาย</a>
 
-      // แสดงชื่อโรงเรียน
-      if (window.AppConfig.gasUrl) {
-        try {
-          const res = await fetch(window.AppConfig.gasUrl + '?action=getConfig&token=public');
-          const cfg = await res.json();
-          if (cfg.schoolName) document.getElementById('school-name-display').textContent = cfg.schoolName;
-        } catch(e) {}
+      <div class="nav-section-label">รายงาน</div>
+      <a href="#/reports" data-page="reports" class="nav-item"><span class="nav-icon">📊</span> รายงานทั้งหมด</a>
+      <a href="#/register-report" data-page="register-report" class="nav-item"><span class="nav-icon">📋</span> ทะเบียนเงิน 3 หมวด</a>
+      <a href="#/bank-recon" data-page="bank-recon" class="nav-item"><span class="nav-icon">⚖️</span> กระทบยอดธนาคาร</a>
+
+      <div class="nav-section-label">จัดการระบบ</div>
+      <a href="#/fiscal-year" data-page="fiscal-year" class="nav-item" data-role="admin,director"><span class="nav-icon">📅</span> เปิด/ปิดปีงบประมาณ</a>
+      <a href="#/users" data-page="users" class="nav-item" data-role="admin"><span class="nav-icon">👤</span> จัดการผู้ใช้งาน</a>
+      <a href="#/money-types" data-page="money-types" class="nav-item" data-role="admin"><span class="nav-icon">🏷️</span> ประเภทเงินและหมวด</a>
+      <a href="#/settings" data-page="settings" class="nav-item" data-role="admin"><span class="nav-icon">⚙️</span> ตั้งค่าระบบ</a>
+      <a href="#/audit-log" data-page="audit-log" class="nav-item" data-role="admin"><span class="nav-icon">🔍</span> Audit Log</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-status"><span class="status-dot"></span> ระบบทำงานปกติ</div>
+      <button class="btn btn-sm" onclick="logout()" style="background:rgba(255,255,255,0.1);color:#fff;border:none">ออก</button>
+    </div>
+  </aside>
+  <main class="main-content">
+<div class="page-view" id="page-dashboard" data-page="dashboard">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div>
+          <div class="top-bar-title" id="school-name-topbar">ระบบบัญชีการเงิน</div>
+          <div style="font-size:0.72rem;color:var(--text-muted)">ปีงบประมาณ <span id="fiscal-year-display">2568</span></div>
+        </div>
+      </div>
+      <div class="top-bar-actions">
+        <span id="last-updated" style="font-size:0.75rem;color:var(--text-muted)"></span>
+        <button class="btn btn-sm btn-secondary" onclick="loadDashboard()">🔄 รีเฟรช</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="kpi-label">💰 เงินรับรวม ปีงบประมาณ</div>
+          <div class="kpi-value" id="kpi-income">กำลังโหลด...</div>
+          <div class="kpi-delta" id="kpi-income-delta"></div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">💳 เงินจ่ายรวม ปีงบประมาณ</div>
+          <div class="kpi-value" id="kpi-expense">—</div>
+          <div class="kpi-delta" id="kpi-expense-delta"></div>
+        </div>
+        <div class="kpi-card orange">
+          <div class="kpi-label">💵 เงินสดคงเหลือ ณ วันนี้</div>
+          <div class="kpi-value" id="kpi-cash">—</div>
+          <div class="kpi-delta" id="kpi-cash-delta"></div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-label">🏦 เงินฝากธนาคารรวม</div>
+          <div class="kpi-value" id="kpi-bank">—</div>
+          <div class="kpi-delta" id="kpi-bank-delta"></div>
+        </div>
+      </div>
+
+      <!-- Row 1: Money Flow + Monthly Chart -->
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">💹 เส้นทางการเงิน (Money Flow)</div>
+            <a href="transactions.html" style="font-size:0.78rem;color:var(--navy-light)">ดูรายละเอียด →</a>
+          </div>
+          <div class="card-body" style="padding-bottom:12px">
+            <svg id="money-flow-svg" class="money-flow-svg" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg"></svg>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📈 สรุปผลการเงิน</div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm" id="chart-tab-month" onclick="switchChartTab('month')">รายเดือน</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:12px">
+            <canvas id="monthly-chart" height="160"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Pie + Bank Status + Alerts -->
+      <div class="dashboard-row">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🥧 สัดส่วนการใช้จ่าย</div></div>
+          <div class="card-body" style="display:flex;align-items:center;gap:16px;padding:12px 20px">
+            <canvas id="pie-chart" width="140" height="140" style="flex-shrink:0"></canvas>
+            <div id="pie-legend" style="font-size:0.78rem;line-height:2"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🏦 สถานะกระทบยอดธนาคาร</div>
+            <a href="reports.html#recon" style="font-size:0.78rem;color:var(--navy-light)">ดูหมด →</a>
+          </div>
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>ธนาคาร</th><th>ยอด (บาท)</th><th>สถานะ</th></tr></thead>
+              <tbody id="bank-status-tbody">
+                <tr><td colspan="3" class="skeleton-cell" style="height:60px"></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔔 การแจ้งเตือนสำคัญ <span id="alert-count" class="badge badge-danger" style="display:none"></span></div>
+          </div>
+          <div class="card-body" style="padding:12px;max-height:200px;overflow-y:auto" id="alerts-container">
+            <div class="skeleton-cell" style="height:40px;margin-bottom:8px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- หมวดเงิน Table -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-title">📋 ยอดรวมแยกตามหมวดเงิน</div></div>
+        <div class="card-body" style="padding:0">
+          <table>
+            <thead>
+              <tr><th>หมวดเงิน</th><th>ยอดยกมา</th><th>รับรวม</th><th>จ่ายรวม</th><th>คงเหลือ</th></tr>
+            </thead>
+            <tbody id="categories-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /page-content -->
+  </div>
+<div class="page-view" id="page-transactions" data-page="transactions">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div class="top-bar-title">📒 สมุดเงินสด</div>
+      </div>
+      <div class="top-bar-actions">
+        <button class="btn btn-sm btn-secondary" onclick="exportTxCSV()">📥 Export CSV</button>
+        <button class="btn btn-sm btn-secondary" data-role="admin" onclick="openImportModal()">📤 Import CSV</button>
+        <button class="btn btn-sm btn-secondary" onclick="downloadTemplate()">📋 Template</button>
+        <button class="btn btn-primary btn-sm" id="btn-add-tx" data-role="admin" onclick="openAddModal()">+ เพิ่มรายการ</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="form-group"><label>วันที่เริ่ม</label><input type="date" id="filter-start" onchange="loadTransactions()"></div>
+        <div class="form-group"><label>วันที่สิ้นสุด</label><input type="date" id="filter-end" onchange="loadTransactions()"></div>
+        <div class="form-group">
+          <label>ประเภทเงิน</label>
+          <select id="filter-moneytype" onchange="loadTransactions()"><option value="">ทั้งหมด</option></select>
+        </div>
+        <div class="form-group">
+          <label>สถานะ</label>
+          <select id="filter-status" onchange="loadTransactions()">
+            <option value="">ทั้งหมด</option>
+            <option>ปกติ</option><option>รอตรวจ</option><option>ครบถ้วน</option><option>ขอเอกสารเพิ่ม</option><option>ปิดรายการ</option><option>ยกเลิก</option>
+          </select>
+        </div>
+        <div class="form-group"><label>ค้นหา</label><input type="text" id="filter-search" placeholder="เลขที่/รายละเอียด..." oninput="debouncedLoad()"></div>
+        <button class="btn btn-secondary btn-sm" onclick="clearFilters()">ล้าง</button>
+      </div>
+
+      <!-- Summary Row -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px">
+        <div class="card" style="padding:12px 16px">
+          <div style="font-size:0.75rem;color:var(--text-muted)">รายการที่กรองได้</div>
+          <div style="font-size:1.2rem;font-weight:700;color:var(--navy)" id="tx-count">—</div>
+        </div>
+        <div class="card" style="padding:12px 16px">
+          <div style="font-size:0.75rem;color:var(--success)">รับรวม (กรองแล้ว)</div>
+          <div style="font-size:1.2rem;font-weight:700;color:var(--success)" id="tx-income-sum">—</div>
+        </div>
+        <div class="card" style="padding:12px 16px">
+          <div style="font-size:0.75rem;color:var(--danger)">จ่ายรวม (กรองแล้ว)</div>
+          <div style="font-size:1.2rem;font-weight:700;color:var(--danger)" id="tx-expense-sum">—</div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div class="card-body" style="padding:0">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>วันที่</th><th>เลขที่เอกสาร</th><th>ประเภทเงิน</th>
+                  <th>ประเภทรายการ</th><th>บัญชี/ช่องทาง</th><th>รายละเอียด</th>
+                  <th>จำนวนเงิน (บาท)</th><th>หมวดเงิน</th><th>สถานะ</th>
+                  <th data-role="admin">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="tx-tbody">
+                
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="tx-pagination" style="padding:12px 16px"></div>
+        </div>
+      </div>
+    </div>
+  
+
+<!-- Add/Edit Transaction Modal -->
+<div class="modal-overlay" id="tx-modal" style="display:none" onclick="if(event.target===this)closeModal('tx-modal')">
+  <div class="modal-box" style="max-width:720px">
+    <div class="modal-title" id="tx-modal-title">เพิ่มรายการใหม่</div>
+    <input type="hidden" id="tx-row-index">
+    <div class="form-grid" id="tx-form">
+      <div class="form-group">
+        <label>วันที่ <span class="required">*</span></label>
+        <input type="date" id="tx-date" required>
+        <span class="field-error" id="err-date"></span>
+      </div>
+      <div class="form-group">
+        <label>เลขที่เอกสาร <span class="required">*</span></label>
+        <input type="text" id="tx-docno" placeholder="เช่น RB001" oninput="checkDocNoDuplicate()">
+        <span class="field-error" id="err-docno"></span>
+      </div>
+      <div class="form-group">
+        <label>ประเภทเงิน <span class="required">*</span></label>
+        <select id="tx-moneytype" onchange="onMoneyTypeChange()">
+          <option value="">เลือก...</option>
+        </select>
+        <span class="field-error" id="err-moneytype"></span>
+      </div>
+      <div class="form-group">
+        <label>หมวดเงิน (อัตโนมัติ)</label>
+        <input type="text" id="tx-category" readonly style="background:#f8fafc">
+      </div>
+      <div class="form-group">
+        <label>ประเภทรายการ <span class="required">*</span></label>
+        <select id="tx-txtype" onchange="onTxTypeChange()">
+          <option value="">เลือก...</option>
+          <option>รับเงินสด</option><option>รับเข้าบัญชี</option>
+          <option>จ่ายเงินสด</option><option>จ่ายจากบัญชี</option>
+          <option>ฝากธนาคาร</option><option>ถอนธนาคาร</option>
+        </select>
+        <span class="field-error" id="err-txtype"></span>
+      </div>
+      <div class="form-group">
+        <label>บัญชี/ช่องทาง <span class="required">*</span></label>
+        <select id="tx-account">
+          <option value="">เลือก...</option>
+          <option value="เงินสด">เงินสด</option>
+        </select>
+        <span class="field-error" id="err-account"></span>
+      </div>
+      <div class="form-group">
+        <label>คู่สัญญา/แหล่งเงิน</label>
+        <input type="text" id="tx-vendor" list="vendor-datalist" placeholder="พิมพ์ชื่อ...">
+        <datalist id="vendor-datalist"></datalist>
+      </div>
+      <div class="form-group">
+        <label>จำนวนเงิน (บาท) <span class="required">*</span></label>
+        <input type="number" id="tx-amount" min="0.01" step="0.01" oninput="onAmountChange()">
+        <span class="field-error"  id="err-amount"></span>
+        <span class="field-warning" id="warn-amount" style="display:none"></span>
+      </div>
+      <div class="form-group full-width">
+        <label>รายละเอียด <span class="required">*</span></label>
+        <textarea id="tx-description" rows="2" placeholder="รายละเอียดรายการ..."></textarea>
+        <span class="field-error" id="err-description"></span>
+      </div>
+      <div class="form-group">
+        <label>สถานะเอกสาร</label>
+        <select id="tx-status">
+          <option>ปกติ</option><option>รอตรวจ</option><option>ครบถ้วน</option><option>ขอเอกสารเพิ่ม</option><option>ปิดรายการ</option><option>ยกเลิก</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-secondary" onclick="closeModal('tx-modal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveTx()" id="btn-save-tx">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import CSV Modal -->
+<div class="modal-overlay" id="import-modal" style="display:none" onclick="if(event.target===this)closeModal('import-modal')">
+  <div class="modal-box" style="max-width:860px">
+    <div class="modal-title">📤 นำเข้าข้อมูล (Import CSV)</div>
+    <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:12px">รองรับไฟล์ CSV ที่มี header: วันที่, เลขที่เอกสาร, ประเภทเงิน, ประเภทรายการ, บัญชี/ช่องทาง, คู่สัญญา, รายละเอียด, จำนวนเงิน, สถานะ</div>
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+      <input type="file" id="import-file" accept=".csv" onchange="handleImportFile(event)" style="flex:1;padding:8px;border:1.5px dashed var(--border);border-radius:7px">
+      <button class="btn btn-secondary btn-sm" onclick="downloadTemplate()">📋 ดาวน์โหลด Template</button>
+    </div>
+    <div id="import-preview" style="max-height:340px;overflow-y:auto;margin-bottom:12px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('import-modal')">ยกเลิก</button>
+      <button class="btn btn-primary" id="btn-confirm-import" onclick="confirmImport()" disabled>📥 นำเข้าข้อมูล</button>
+    </div>
+  </div>
+</div></div>
+<div class="page-view" id="page-bank-accounts" data-page="bank-accounts">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px"><button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button><div class="top-bar-title">🏦 บัญชีธนาคาร</div></div>
+      <div class="top-bar-actions"><button class="btn btn-primary btn-sm" data-role="admin" onclick="openModal('bank-modal')">+ เพิ่มบัญชี</button></div>
+    </header>
+    <div class="page-content">
+      <div class="card"><div class="card-body" style="padding:0"><div class="table-wrapper">
+        <table>
+          <thead><tr><th>รหัส</th><th>ธนาคาร</th><th>เลขที่บัญชี</th><th>ชื่อบัญชี</th><th>หมวดเงิน</th><th>ยอดยกมา</th><th>สถานะ</th><th data-role="admin">จัดการ</th></tr></thead>
+          <tbody id="bank-tbody"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
+        </table>
+      </div></div></div>
+    </div>
+  
+<div class="modal-overlay" id="bank-modal" style="display:none" onclick="if(event.target===this)closeModal('bank-modal')">
+  <div class="modal-box">
+    <div class="modal-title" id="bank-modal-title">เพิ่มบัญชีธนาคาร</div>
+    <input type="hidden" id="bank-row-index">
+    <div class="form-grid">
+      <div class="form-group"><label>ธนาคาร <span class="required">*</span></label>
+        <select id="b-bank"><option value="">เลือก...</option><option>กรุงเทพ</option><option>กสิกรไทย</option><option>ไทยพาณิชย์</option><option>กรุงไทย</option><option>ออมสิน</option></select>
+      </div>
+      <div class="form-group"><label>สาขา</label><input type="text" id="b-branch"></div>
+      <div class="form-group"><label>เลขที่บัญชี <span class="required">*</span></label><input type="text" id="b-accountno"></div>
+      <div class="form-group"><label>ประเภทบัญชี</label><select id="b-accounttype"><option>ออมทรัพย์</option><option>กระแสรายวัน</option></select></div>
+      <div class="form-group"><label>ชื่อบัญชี <span class="required">*</span></label><input type="text" id="b-name"></div>
+      <div class="form-group"><label>หมวดเงิน <span class="required">*</span></label><select id="b-category"><option value="">เลือก...</option><option>เงินนอกงบประมาณ</option><option>เงินรายได้แผ่นดิน</option><option>เงินงบประมาณ</option></select></div>
+      <div class="form-group"><label>ยอดยกมา (บาท)</label><input type="number" id="b-opening" min="0" step="0.01" value="0"></div>
+      <div class="form-group"><label>สถานะ</label><select id="b-active"><option value="true">ใช้งาน</option><option value="false">ไม่ใช้งาน</option></select></div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('bank-modal')">ยกเลิก</button><button class="btn btn-primary" onclick="saveBankAccount()">💾 บันทึก</button></div>
+  </div>
+</div></div>
+<div class="page-view" id="page-vendors" data-page="vendors">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px"><button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button><div class="top-bar-title">👥 ผู้รับเงินและผู้ขาย</div></div>
+      <div class="top-bar-actions">
+        <input type="text" id="v-search" placeholder="ค้นหาชื่อ..." style="padding:7px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:.85rem" oninput="filterVendors()">
+        <button class="btn btn-primary btn-sm" data-role="admin" onclick="openModal('vendor-modal')">+ เพิ่มรายการ</button>
+      </div>
+    </header>
+    <div class="page-content">
+      <div class="card"><div class="card-body" style="padding:0"><div class="table-wrapper">
+        <table>
+          <thead><tr><th>รหัส</th><th>ชื่อ</th><th>เลขประจำตัว/ภาษี</th><th>โทรศัพท์</th><th>บัญชีธนาคาร</th><th>หมายเหตุ</th><th data-role="admin">จัดการ</th></tr></thead>
+          <tbody id="vendor-tbody"></tbody>
+        </table>
+      </div></div></div>
+    </div>
+  
+<div class="modal-overlay" id="vendor-modal" style="display:none" onclick="if(event.target===this)closeModal('vendor-modal')">
+  <div class="modal-box">
+    <div class="modal-title">เพิ่มผู้รับเงิน/ผู้ขาย</div>
+    <div class="form-grid">
+      <div class="form-group"><label>ชื่อผู้รับเงิน/ผู้ขาย <span class="required">*</span></label><input type="text" id="v-name"></div>
+      <div class="form-group"><label>เลขประจำตัว/ภาษี</label><input type="text" id="v-taxid"></div>
+      <div class="form-group full-width"><label>ที่อยู่</label><textarea id="v-address" rows="2"></textarea></div>
+      <div class="form-group"><label>โทรศัพท์</label><input type="text" id="v-phone"></div>
+      <div class="form-group"><label>บัญชีธนาคาร</label><input type="text" id="v-bankaccount" placeholder="ธ.กสิกร 123-4-56789-0"></div>
+      <div class="form-group full-width"><label>หมายเหตุ</label><input type="text" id="v-note"></div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('vendor-modal')">ยกเลิก</button><button class="btn btn-primary" onclick="saveVendor()">💾 บันทึก</button></div>
+  </div>
+</div></div>
+<div class="page-view" id="page-reports" data-page="reports">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div class="top-bar-title">📊 รายงาน</div>
+      </div>
+      <div class="top-bar-actions">
+        <button class="btn btn-secondary btn-sm" onclick="printPage()">🖨️ พิมพ์</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportCurrentTab()">📥 Export CSV</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- Print header -->
+      <div class="report-header-print">
+        <h2 id="print-title">รายงานการเงิน</h2>
+        <p id="print-subtitle"></p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" id="tab-daily"   onclick="switchTab('daily')">📅 เงินคงเหลือประจำวัน</button>
+        <button class="tab-btn"        id="tab-monthly" onclick="switchTab('monthly')">📆 สรุปรายเดือน</button>
+        <button class="tab-btn"        id="tab-recon"   onclick="switchTab('recon')" id="tab-recon-btn">🏦 กระทบยอดธนาคาร</button>
+      </div>
+
+      <!-- Tab: Daily -->
+      <div class="tab-panel active" id="panel-daily">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">รายงานเงินคงเหลือประจำวัน</div>
+            <div style="font-size:.78rem;color:var(--text-muted)" id="daily-generated"></div>
+          </div>
+          <div class="card-body" style="padding:0"><div class="table-wrapper">
+            <table id="daily-table">
+              <thead><tr><th>วันที่</th><th>เงินสดยกมา</th><th>รับเพิ่ม</th><th>จ่ายออก</th><th>เงินสดคงเหลือ</th><th>เงินฝากธนาคาร</th><th>รวมทั้งสิ้น</th><th>หมายเหตุ</th></tr></thead>
+              <tbody id="daily-tbody"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- Tab: Monthly -->
+      <div class="tab-panel" id="panel-monthly">
+        <div class="card">
+          <div class="card-header"><div class="card-title">รายงานสรุปรายเดือน</div></div>
+          <div class="card-body" style="padding:0"><div class="table-wrapper">
+            <table id="monthly-table">
+              <thead><tr><th>เดือน</th><th>รับรวม</th><th>จ่ายรวม</th><th>คงเหลือ</th><th>เงินนอกงบ</th><th>เงินรายได้แผ่นดิน</th><th>เงินงบประมาณ</th></tr></thead>
+              <tbody id="monthly-tbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- Tab: Bank Recon -->
+      <div class="tab-panel" id="panel-recon">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">กระทบยอดธนาคาร</div>
+            <div style="font-size:.78rem;color:var(--text-muted)">เปรียบเทียบยอดในระบบ vs ยอด Statement ธนาคาร</div>
+          </div>
+          <div class="card-body" style="padding:0"><div class="table-wrapper">
+            <table>
+              <thead><tr><th>บัญชีธนาคาร</th><th>ยอดในระบบ</th><th>ยอด Statement</th><th>ผลต่าง</th><th>สถานะ</th><th>หมายเหตุ</th></tr></thead>
+              <tbody id="recon-tbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div></div>
+        </div>
+
+        <!-- Summary recon -->
+        <div id="recon-summary" style="margin-top:14px"></div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div>
+<div class="page-view" id="page-register-report" data-page="register-report">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div class="top-bar-title">📋 ทะเบียนเงิน 3 หมวด</div>
+      </div>
+      <div class="top-bar-actions">
+        <button class="btn btn-secondary btn-sm" onclick="printPage()">🖨️ พิมพ์</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportReg()">📥 Export CSV</button>
+      </div>
+    </header>
+    <div class="page-content">
+      <!-- Selector -->
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+        <div class="tabs" style="margin-bottom:0;border:none">
+          <button class="tab-btn active" id="tab-นอกงบ"     onclick="switchRegTab('นอกงบ')">เงินนอกงบประมาณ</button>
+          <button class="tab-btn"        id="tab-แผ่นดิน"   onclick="switchRegTab('แผ่นดิน')">เงินรายได้แผ่นดิน</button>
+          <button class="tab-btn"        id="tab-งบ"        onclick="switchRegTab('งบ')">เงินงบประมาณ</button>
+        </div>
+      </div>
+      <!-- Register Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title" id="reg-title">ทะเบียนเงินนอกงบประมาณ</div>
+          <div style="font-size:.78rem;color:var(--text-muted)" id="reg-count"></div>
+        </div>
+        <div class="card-body" style="padding:0"><div class="table-wrapper">
+          <table>
+            <thead id="reg-thead">
+              <tr><th>ที่</th><th>วันที่</th><th>เลขที่เอกสาร</th><th>รายการ</th><th>รับ (บาท)</th><th>จ่าย (บาท)</th><th>คงเหลือ (บาท)</th></tr>
+            </thead>
+            <tbody id="reg-tbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
+          </table>
+        </div></div>
+      </div>
+    </div>
+  </div>
+<div class="page-view" id="page-bank-recon" data-page="bank-recon">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div><div class="top-bar-title">⚖️ กระทบยอดธนาคาร</div><div style="font-size:.72rem;color:var(--text-muted)">เปรียบเทียบยอดในระบบ vs Statement ธนาคาร</div></div>
+      </div>
+      <div class="top-bar-actions">
+        <button class="btn btn-secondary btn-sm" onclick="loadRecon()">🔄 รีเฟรช</button>
+        <button class="btn btn-secondary btn-sm" onclick="printPage()">🖨️ พิมพ์</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- Summary bar -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+        <div class="card" style="padding:14px 18px">
+          <div style="font-size:.75rem;color:var(--text-muted)">บัญชีทั้งหมด</div>
+          <div style="font-size:1.3rem;font-weight:700;color:var(--navy)" id="summary-total">—</div>
+        </div>
+        <div class="card" style="padding:14px 18px">
+          <div style="font-size:.75rem;color:var(--success)">กระทบยอดตรง</div>
+          <div style="font-size:1.3rem;font-weight:700;color:var(--success)" id="summary-ok">—</div>
+        </div>
+        <div class="card" style="padding:14px 18px">
+          <div style="font-size:.75rem;color:var(--danger)">ยังไม่ตรง / รอกระทบ</div>
+          <div style="font-size:1.3rem;font-weight:700;color:var(--danger)" id="summary-fail">—</div>
+        </div>
+      </div>
+
+      <!-- Recon cards per bank -->
+      <div id="recon-container">
+        <div style="text-align:center;padding:40px;color:var(--text-muted)">กำลังโหลด...</div>
+      </div>
+    </div>
+  
+
+<!-- Statement Entry Modal -->
+<div class="modal-overlay" id="stmt-modal" style="display:none" onclick="if(event.target===this)closeModal('stmt-modal')">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-title">กรอกยอด Statement ธนาคาร</div>
+    <div style="font-size:.85rem;color:var(--text-muted);margin-bottom:14px" id="stmt-bank-info"></div>
+    <input type="hidden" id="stmt-account-id">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>ยอดตาม Statement (บาท) <span class="required">*</span></label>
+        <input type="number" id="stmt-balance" step="0.01" placeholder="0.00">
+        <span style="font-size:.75rem;color:var(--text-muted)">ยอดคงเหลือใน Bank Statement ล่าสุด</span>
+      </div>
+      <div class="form-group">
+        <label>เงินฝากระหว่างทาง (บาท)</label>
+        <input type="number" id="stmt-in-transit" step="0.01" placeholder="0.00" value="0">
+        <span style="font-size:.75rem;color:var(--text-muted)">ฝากแล้วแต่ยังไม่เข้า Statement</span>
+      </div>
+      <div class="form-group">
+        <label>เช็คค้างจ่าย (บาท)</label>
+        <input type="number" id="stmt-outstanding" step="0.01" placeholder="0.00" value="0">
+        <span style="font-size:.75rem;color:var(--text-muted)">จ่ายเช็คแล้วแต่ยังไม่ถูกขึ้น</span>
+      </div>
+    </div>
+    <!-- สูตรกระทบยอด -->
+    <div style="background:#f7faff;border-radius:8px;padding:12px 14px;font-size:.82rem;margin:12px 0;border:1px solid var(--border)">
+      <strong>สูตรกระทบยอด:</strong><br>
+      ยอดปรับปรุง = ยอด Statement + เงินฝากระหว่างทาง − เช็คค้างจ่าย<br>
+      ผลต่าง = ยอดในระบบ − ยอดปรับปรุง (ต้องเป็น 0)
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('stmt-modal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveStatement()">💾 บันทึก Statement</button>
+    </div>
+  </div>
+</div></div>
+<div class="page-view" id="page-fiscal-year" data-page="fiscal-year">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div class="top-bar-title">📅 เปิด/ปิดปีงบประมาณ</div>
+      </div>
+      <div class="top-bar-actions">
+        <button class="btn btn-sm btn-secondary" onclick="loadFiscalYearPage()">🔄 ตรวจสอบใหม่</button>
+      </div>
+    </header>
+
+    <div class="page-content" id="fy-content">
+
+      <div class="fy-hero">
+        <h1>🗓️ การจัดการปีงบประมาณ <span id="fy-year-display"></span></h1>
+        <p>กระบวนการปิดงบและเปิดปีงบใหม่ต้องได้รับการยืนยันจากทั้ง Admin และผู้อำนวยการ</p>
+      </div>
+
+      <!-- Archive Success Banner -->
+      <div class="archive-success" id="archive-success">
+        <div style="font-size:3rem">🎉</div>
+        <h2>ปิดปีงบประมาณสำเร็จ!</h2>
+        <p id="archive-success-msg"></p>
+        <div style="margin-top:16px;display:flex;gap:12px;justify-content:center">
+          <a id="archive-link" class="btn btn-secondary" target="_blank">📁 ดู Archive</a>
+          <a id="new-sheet-link" class="btn btn-success" target="_blank">📊 ดู Sheet ปีใหม่</a>
+          <button class="btn btn-primary" onclick="location.href='dashboard.html'">ไปยัง Dashboard ปีใหม่</button>
+        </div>
+      </div>
+
+      <!-- Block banner (ระหว่างรอ Director) -->
+      <div class="block-banner" id="block-banner">
+        🔒 ระบบอยู่ในระหว่างกระบวนการปิดงบ — กรุณารอ ผอ. อนุมัติก่อนบันทึกรายการใหม่
+      </div>
+
+      <!-- Director pending request (แสดงสำหรับ Director) -->
+      <div class="director-request" id="director-request-box" data-role="director">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <span style="font-size:2rem">📨</span>
+          <div>
+            <div style="font-weight:700;color:var(--navy)">มี Request ปิดปีงบรอการอนุมัติ</div>
+            <div class="text-muted" style="font-size:.82rem" id="dir-request-info"></div>
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <div style="font-size:.88rem;color:var(--text-muted);margin-bottom:8px">ตรวจสอบ Checklist ก่อนอนุมัติ ↓</div>
+        </div>
+        <button class="btn btn-success" id="btn-director-approve" onclick="directorApprove()" disabled>
+          🔐 ผอ. อนุมัติปิดปีงบประมาณ
+        </button>
+      </div>
+
+      <!-- Step 1: Checklist -->
+      <div class="fy-step" id="step-checklist">
+        <div class="fy-step-num pending" id="step1-num">1</div>
+        <div class="fy-step-info" style="flex:1">
+          <h3>ขั้นตอนที่ 1 — ตรวจสอบความพร้อมของข้อมูล</h3>
+          <p>ระบบจะตรวจสอบ 7 เงื่อนไขก่อนอนุญาตให้ปิดงบ</p>
+
+          <div class="all-pass-banner" id="all-pass-banner">✅ ผ่านทุกเงื่อนไข พร้อมปิดปีงบประมาณแล้ว!</div>
+          <div class="checklist-grid" id="checklist-container" style="margin-top:12px"></div>
+
+          <div style="margin-top:14px;display:flex;gap:10px">
+            <button class="btn btn-secondary" id="btn-refresh-check" onclick="runChecklist()">🔄 ตรวจสอบอีกครั้ง</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Admin Confirm -->
+      <div class="fy-step" id="step-admin">
+        <div class="fy-step-num locked" id="step2-num">2</div>
+        <div class="fy-step-info" style="flex:1">
+          <h3>ขั้นตอนที่ 2 — Admin ยืนยัน</h3>
+          <p>Admin ยืนยันว่าข้อมูลครบถ้วนและพร้อมปิดงบ</p>
+          <!-- Director pending: แสดงเมื่อ Admin กดแล้ว รอ Director -->
+          <div class="director-pending" id="admin-pending-msg">
+            <div style="font-weight:600;color:var(--warning)">⏳ รอการอนุมัติจากผู้อำนวยการ</div>
+            <div style="font-size:.82rem;color:var(--text-muted);margin-top:4px">ผู้อำนวยการได้รับ Email แจ้งเตือนแล้ว กรุณารอการอนุมัติ</div>
+          </div>
+          <button class="btn btn-primary" id="btn-admin-confirm" onclick="adminConfirm()" disabled data-role="admin" style="margin-top:10px">
+            ✅ Admin ยืนยันพร้อมปิดงบ
+          </button>
+          <div class="step-status" id="step2-status"></div>
+        </div>
+      </div>
+
+      <!-- Step 3: Director Approve -->
+      <div class="fy-step" id="step-director">
+        <div class="fy-step-num locked" id="step3-num">3</div>
+        <div class="fy-step-info" style="flex:1">
+          <h3>ขั้นตอนที่ 3 — ผู้อำนวยการอนุมัติ</h3>
+          <p>ผู้อำนวยการ Login เข้าระบบและกดอนุมัติปิดปีงบ</p>
+          <div style="margin-top:10px;font-size:.82rem;color:var(--text-muted)">
+            ระบบจะดำเนินการโดยอัตโนมัติ:<br>
+            🗂️ Archive Sheet ปัจจุบันไปยัง Google Drive<br>
+            📊 สร้าง Sheet ใหม่สำหรับปีงบถัดไป<br>
+            🔗 Frontend เชื่อมกับ Sheet ใหม่โดยอัตโนมัติ
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  
+
+<!-- Lock overlay ระหว่าง process -->
+<div class="lock-overlay" id="lock-overlay">
+  <div class="lock-overlay-box">
+    <div class="lock-overlay-icon">⏳</div>
+    <div style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:8px">กำลังดำเนินการปิดงบ</div>
+    <div style="font-size:.85rem;color:var(--text-muted)">กรุณารอ อย่าปิดหน้าต่างนี้...</div>
+    <div class="spinner" style="margin:16px auto 0"></div>
+  </div>
+</div></div>
+<div class="page-view" id="page-users" data-page="users">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px"><button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button><div class="top-bar-title">👤 จัดการผู้ใช้งาน</div></div>
+      <div class="top-bar-actions"><button class="btn btn-primary btn-sm" onclick="openModal('add-user-modal')">+ เพิ่มผู้ใช้</button></div>
+    </header>
+    <div class="page-content">
+      <div class="card"><div class="card-body" style="padding:0"><div class="table-wrapper">
+        <table>
+          <thead><tr><th>ชื่อ</th><th>Email</th><th>Role</th><th>สถานะ</th><th>เข้าใช้งานล่าสุด</th><th>จัดการ</th></tr></thead>
+          <tbody id="users-tbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
+        </table>
+      </div></div></div>
+    </div>
+  
+<!-- Add User Modal -->
+<div class="modal-overlay" id="add-user-modal" style="display:none" onclick="if(event.target===this)closeModal('add-user-modal')">
+  <div class="modal-box">
+    <div class="modal-title">เพิ่มผู้ใช้งานใหม่</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Email Google <span class="required">*</span></label><input type="email" id="new-email" placeholder="user@gmail.com"></div>
+      <div class="form-group"><label>ชื่อแสดง</label><input type="text" id="new-name"></div>
+      <div class="form-group"><label>Role <span class="required">*</span></label>
+        <select id="new-role"><option value="viewer">Viewer (ดูอย่างเดียว)</option><option value="admin">Admin (กรอกข้อมูลได้)</option><option value="director">Director (ผู้อำนวยการ)</option></select>
+      </div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('add-user-modal')">ยกเลิก</button><button class="btn btn-primary" onclick="addUser()">เพิ่มผู้ใช้</button></div>
+  </div>
+</div></div>
+<div class="page-view" id="page-money-types" data-page="money-types">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div class="top-bar-title">🏷️ ประเภทเงินและหมวด</div>
+      </div>
+      <div class="top-bar-actions">
+        <button class="btn btn-primary btn-sm" data-role="admin" onclick="openModal('add-type-modal')">+ เพิ่มประเภทเงิน</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header">
+          <div class="card-title">ประเภทเงินทั้งหมด</div>
+          <div style="font-size:.78rem;color:var(--text-muted)">ใช้กำหนด dropdown ในสมุดเงินสด และกำหนดว่าเงินนั้นอยู่ในหมวดไหน</div>
+        </div>
+        <div class="card-body" style="padding:0"><div class="table-wrapper">
+          <table>
+            <thead><tr><th>#</th><th>ประเภทเงิน</th><th>หมวดเงิน (3 หมวดหลัก)</th><th>คำอธิบาย</th><th data-role="admin">จัดการ</th></tr></thead>
+            <tbody id="type-tbody"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
+          </table>
+        </div></div>
+      </div>
+
+      <!-- หมวดหลัก 3 หมวด อธิบาย -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+        <div class="card" style="border-left:4px solid #2980b9">
+          <div class="card-body" style="padding:14px 16px">
+            <div style="font-weight:700;color:#2980b9;margin-bottom:4px">เงินรายได้แผ่นดิน</div>
+            <div style="font-size:.8rem;color:var(--text-muted)">ดอกเบี้ยเงินฝาก รายได้ที่ต้องส่งคลัง</div>
+          </div>
+        </div>
+        <div class="card" style="border-left:4px solid #8e44ad">
+          <div class="card-body" style="padding:14px 16px">
+            <div style="font-weight:700;color:#8e44ad;margin-bottom:4px">เงินงบประมาณ</div>
+            <div style="font-size:.8rem;color:var(--text-muted)">เงินอุดหนุนทั่วไปจาก สพฐ. งบประมาณรัฐ</div>
+          </div>
+        </div>
+        <div class="card" style="border-left:4px solid #27ae60">
+          <div class="card-body" style="padding:14px 16px">
+            <div style="font-weight:700;color:#27ae60;margin-bottom:4px">เงินนอกงบประมาณ</div>
+            <div style="font-size:.8rem;color:var(--text-muted)">รายได้สถานศึกษา กิจกรรม อาหารกลางวัน บริจาค</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+
+<!-- Add Money Type Modal -->
+<div class="modal-overlay" id="add-type-modal" style="display:none" onclick="if(event.target===this)closeModal('add-type-modal')">
+  <div class="modal-box">
+    <div class="modal-title" id="type-modal-title">เพิ่มประเภทเงิน</div>
+    <input type="hidden" id="edit-type-original">
+    <div class="form-grid">
+      <div class="form-group"><label>ชื่อประเภทเงิน <span class="required">*</span></label><input type="text" id="new-type" placeholder="เช่น เงินกองทุนพัฒนาครู"></div>
+      <div class="form-group"><label>หมวดเงิน <span class="required">*</span></label>
+        <select id="new-category">
+          <option value="">เลือก...</option>
+          <option value="เงินรายได้แผ่นดิน">เงินรายได้แผ่นดิน</option>
+          <option value="เงินงบประมาณ">เงินงบประมาณ</option>
+          <option value="เงินนอกงบประมาณ">เงินนอกงบประมาณ</option>
+        </select>
+      </div>
+      <div class="form-group full-width"><label>คำอธิบาย</label><input type="text" id="new-desc" placeholder="อธิบายแหล่งที่มาหรือวัตถุประสงค์"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('add-type-modal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveMoneyType()">💾 บันทึก</button>
+    </div>
+  </div>
+</div></div>
+<div class="page-view" id="page-settings" data-page="settings">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px"><button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button><div class="top-bar-title">⚙️ ตั้งค่าระบบ</div></div>
+      <div class="top-bar-actions"><button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 บันทึกตั้งค่า</button></div>
+    </header>
+    <div class="page-content">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-title">🏫 ข้อมูลโรงเรียนและงวดรายงาน</div></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group"><label>ชื่อโรงเรียน <span class="required">*</span></label><input type="text" id="cfg-schoolName"></div>
+            <div class="form-group"><label>ที่อยู่/สังกัด</label><input type="text" id="cfg-schoolAddr"></div>
+            <div class="form-group"><label>วันที่เริ่มรายงาน</label><input type="date" id="cfg-startDate"></div>
+            <div class="form-group"><label>วันที่สิ้นสุดรายงาน</label><input type="date" id="cfg-endDate"></div>
+            <div class="form-group"><label>ปีงบประมาณ (พ.ศ.)</label><input type="number" id="cfg-fiscalYear" min="2560" max="2600"></div>
+            <div class="form-group"><label>เกณฑ์เตือนจำนวนเงินสูง (บาท)</label><input type="number" id="cfg-alertThreshold" min="1000"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-title">👥 บุคลากรที่รับผิดชอบ</div></div>
+        <div class="card-body">
+          <div class="form-grid form-grid-3">
+            <div class="form-group"><label>หัวหน้าหน่วยงาน (ผอ.)</label><input type="text" id="cfg-director"></div>
+            <div class="form-group"><label>เจ้าหน้าที่การเงิน</label><input type="text" id="cfg-officer"></div>
+            <div class="form-group"><label>เงินสดยกมา (บาท)</label><input type="number" id="cfg-openingCash" step="0.01" min="0"></div>
+            <div class="form-group"><label>กรรมการตรวจนับ คนที่ 1</label><input type="text" id="cfg-committee1"></div>
+            <div class="form-group"><label>กรรมการตรวจนับ คนที่ 2</label><input type="text" id="cfg-committee2"></div>
+            <div class="form-group"><label>กรรมการตรวจนับ คนที่ 3</label><input type="text" id="cfg-committee3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="page-view" id="page-audit-log" data-page="audit-log">
+    <header class="top-bar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div class="top-bar-title">🔍 Audit Log</div>
+      </div>
+      <div class="top-bar-actions">
+        <input type="text" id="audit-search" placeholder="ค้นหา action/email..." style="padding:7px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:.85rem" oninput="filterLogs()">
+        <button class="btn btn-secondary btn-sm" onclick="exportAudit()">📥 Export</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadAuditLog()">🔄</button>
+      </div>
+    </header>
+    <div class="page-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">ประวัติการใช้งานระบบ</div>
+          <div style="font-size:.78rem;color:var(--text-muted)">แสดง 500 รายการล่าสุด</div>
+        </div>
+        <div class="card-body" style="padding:0"><div class="table-wrapper">
+          <table>
+            <thead><tr><th>เวลา</th><th>Action</th><th>ผู้ดำเนินการ</th><th>รายละเอียด</th><th>แถวที่</th></tr></thead>
+            <tbody id="audit-tbody"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
+          </table>
+        </div></div>
+      </div>
+    </div>
+  </div>
+  </main>
+</div>
+
+<script>
+// ============================================================
+// config.js — โรงเรียนบ้านถิ่นสำราญ | ปีงบประมาณ 2569
+// ============================================================
+
+const SYSTEM_CONFIG_FILE_ID = '12lL_8pnlRo7iD9qhxsqisV4BsMCGPbMI';
+const SYSTEM_CONFIG_URL = `https://drive.google.com/uc?export=download&id=${SYSTEM_CONFIG_FILE_ID}`;
+
+const GOOGLE_CLIENT_ID = '896724932741-rf7udn0flhj0un5roht9ra3p8gdvqurv.apps.googleusercontent.com';
+
+const FALLBACK_GAS_URL = 'https://script.google.com/macros/s/AKfycby2ya1pNEt5WCqUPtd7d81g7ghy-Jc-T9VVEx28FZSWPavf0qtj1Iy7159L8Oh6JbmDpw/exec';
+
+window.AppConfig = {
+  gasUrl:            FALLBACK_GAS_URL,
+  currentSheetId:    '14L7bOGl22C1OPktXf4EPtF5UToOY1bTyxtUEAQIe76A',
+  currentFiscalYear: 2569,
+  schoolName:        'บ้านถิ่นสำราญ',
+  loaded:            false,
+};
+
+async function loadSystemConfig() {
+  const cached = sessionStorage.getItem('system_config');
+  if (cached) {
+    try {
+      const cfg = JSON.parse(cached);
+      Object.assign(window.AppConfig, cfg, { loaded: true });
+      return window.AppConfig;
+    } catch(e) {}
+  }
+  try {
+    const res = await fetch(SYSTEM_CONFIG_URL, { cache: 'no-cache' });
+    if (!res.ok) throw new Error('config fetch failed: ' + res.status);
+    const cfg = await res.json();
+    Object.assign(window.AppConfig, cfg, { loaded: true });
+    sessionStorage.setItem('system_config', JSON.stringify(cfg));
+    return window.AppConfig;
+  } catch(err) {
+    console.warn('loadSystemConfig fallback:', err.message);
+    window.AppConfig.loaded = true;
+    return window.AppConfig;
+  }
+}
+
+function resetConfigCache() {
+  sessionStorage.removeItem('system_config');
+  window.AppConfig.loaded = false;
+}
+
+// ============================================================
+// utils.js — format เงิน, วันที่ไทย, toast, modal, loading
+// ============================================================
+
+// ===== Number & Currency =====
+function formatMoney(amount, showSign = false) {
+  const n = Number(amount) || 0;
+  const str = Math.abs(n).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (showSign && n < 0) return '−฿' + str;
+  return '฿' + str;
+}
+
+function formatMoneyShort(amount) {
+  const n = Math.abs(Number(amount) || 0);
+  if (n >= 1_000_000) return '฿' + (n / 1_000_000).toFixed(2) + 'M';
+  if (n >= 1_000)     return '฿' + (n / 1_000).toFixed(1) + 'K';
+  return '฿' + n.toLocaleString('th-TH');
+}
+
+// ===== Date =====
+const THAI_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const THAI_MONTHS_FULL = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+function formatThaiDate(dateStr, full = false) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr;
+  const day   = d.getDate();
+  const month = full ? THAI_MONTHS_FULL[d.getMonth()] : THAI_MONTHS[d.getMonth()];
+  const year  = d.getFullYear() + 543;
+  return `${day} ${month} ${year}`;
+}
+
+function formatThaiDateTime(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr;
+  const time = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  return formatThaiDate(dateStr) + ' ' + time + ' น.';
+}
+
+function toISODate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt)) return '';
+  return dt.toISOString().slice(0, 10);
+}
+
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+
+// ===== Toast Notification =====
+let _toastTimer = null;
+function showToast(message, type = 'info', duration = 3500) {
+  let toast = document.getElementById('toast-container');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast-container';
+    document.body.appendChild(toast);
+  }
+  const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+  const item = document.createElement('div');
+  item.className = `toast toast-${type}`;
+  item.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><span class="toast-msg">${message}</span>`;
+  toast.appendChild(item);
+  setTimeout(() => item.classList.add('show'), 10);
+  setTimeout(() => {
+    item.classList.remove('show');
+    setTimeout(() => item.remove(), 400);
+  }, duration);
+}
+
+// ===== Confirm Dialog =====
+function confirmDialog(title, message, confirmText = 'ยืนยัน', cancelText = 'ยกเลิก') {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-box confirm-box">
+        <div class="modal-title">${title}</div>
+        <div class="modal-body">${message}</div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" id="modal-cancel">${cancelText}</button>
+          <button class="btn btn-danger" id="modal-confirm">${confirmText}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('active'));
+    overlay.querySelector('#modal-confirm').onclick = () => { overlay.remove(); resolve(true); };
+    overlay.querySelector('#modal-cancel').onclick  = () => { overlay.remove(); resolve(false); };
+  });
+}
+
+// ===== Generic Modal =====
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (el) { el.style.display = 'flex'; requestAnimationFrame(() => el.classList.add('active')); }
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.classList.remove('active');
+    setTimeout(() => { el.style.display = 'none'; }, 300);
+  }
+}
+
+// ===== Loading Overlay =====
+function showLoading(show, text = 'กำลังโหลด...') {
+  let el = document.getElementById('global-loading');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'global-loading';
+    el.className = 'global-loading';
+    el.innerHTML = `<div class="loading-box"><div class="spinner"></div><span id="loading-text">${text}</span></div>`;
+    document.body.appendChild(el);
+  }
+  document.getElementById('loading-text').textContent = text;
+  el.style.display = show ? 'flex' : 'none';
+}
+
+// ===== Quick Stats Sidebar =====
+async function loadSidebarStats() {
+  window._sidebarStatsRequested = true;
+  const el = document.getElementById('sidebar-cash-balance');
+  if (!el) return;
+  try {
+    const dash = await API.getDashboard();
+    el.textContent = formatMoneyShort(dash.kpi?.cashBalance || 0);
+    el.classList.toggle('negative', (dash.kpi?.cashBalance || 0) < 0);
+  } catch(e) {}
+}
+
+// ===== Pagination Helper =====
+function renderPagination(containerId, currentPage, totalPages, onPageChange) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  let html = '';
+  const prev = currentPage > 1;
+  const next  = currentPage < totalPages;
+  html += `<button class="page-btn" ${!prev ? 'disabled' : ''} onclick="${onPageChange.name}(${currentPage - 1})">‹</button>`;
+  const start = Math.max(1, currentPage - 2);
+  const end   = Math.min(totalPages, currentPage + 2);
+  for (let p = start; p <= end; p++) {
+    html += `<button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="${onPageChange.name}(${p})">${p}</button>`;
+  }
+  html += `<button class="page-btn" ${!next ? 'disabled' : ''} onclick="${onPageChange.name}(${currentPage + 1})">›</button>`;
+  html += `<span class="page-info">หน้า ${currentPage} / ${totalPages}</span>`;
+  el.innerHTML = html;
+}
+
+// ===== Skeleton Loader =====
+function renderSkeleton(containerId, rows = 5, cols = 6) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const cells = Array(cols).fill('<td><div class="skeleton-cell"></div></td>').join('');
+  el.innerHTML = Array(rows).fill(`<tr>${cells}</tr>`).join('');
+}
+
+// ===== Delta Badge (เปอร์เซ็นต์เปลี่ยนแปลง) =====
+function deltaBadge(pct) {
+  if (pct === null || pct === undefined) return '';
+  const sign  = pct >= 0 ? '+' : '';
+  const cls   = pct >= 0 ? 'delta-up' : 'delta-down';
+  const arrow = pct >= 0 ? '▲' : '▼';
+  return `<span class="delta-badge ${cls}">${arrow} ${sign}${Number(pct).toFixed(1)}%</span>`;
+}
+
+// ===== Debounce =====
+function debounce(fn, delay = 400) {
+  let timer;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
+}
+
+// ===== Export to CSV =====
+function exportCSV(data, filename = 'export.csv') {
+  if (!data || !data.length) return;
+  const headers = Object.keys(data[0]);
+  const rows = data.map(r => headers.map(h => `"${String(r[h]||'').replace(/"/g,'""')}"`).join(','));
+  const csv  = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== Print =====
+function printPage() {
+  window.print();
+}
+
+// ============================================================
+// auth.js — Google OAuth2, Token Management, Role Guard
+// ============================================================
+
+const TOKEN_KEY    = 'finance_token';
+const USER_KEY     = 'finance_user';
+const EXPIRY_KEY   = 'finance_token_expiry';
+const IDLE_LIMIT   = 2 * 60 * 60 * 1000;  // 2 ชั่วโมง
+const REFRESH_BEFORE = 30 * 60 * 1000;     // refresh ถ้าเหลือ < 30 นาที
+
+let _idleTimer = null;
+
+// ===== Google Identity Services (GSI) =====
+function initGoogleAuth(callback) {
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: async function(response) {
+      await handleGoogleSignIn(response.credential);
+      if (callback) callback();
+    },
+    auto_select: false,
+    cancel_on_tap_outside: true,
+  });
+}
+
+function renderGoogleButton(elementId) {
+  google.accounts.id.renderButton(
+    document.getElementById(elementId),
+    { theme: 'outline', size: 'large', text: 'signin_with', locale: 'th', shape: 'rectangular', width: 280 }
+  );
+}
+
+async function handleGoogleSignIn(idToken) {
+  showLoginLoading(true);
+  try {
+    const res = await fetch(window.AppConfig.gasUrl + '?action=login', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'login', idToken }),
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      showLoginError(data.error || 'ไม่สามารถเข้าสู่ระบบได้');
+      return;
+    }
+
+    // เก็บ token
+    localStorage.setItem(TOKEN_KEY,  data.token);
+    localStorage.setItem(USER_KEY,   JSON.stringify(data.user));
+    localStorage.setItem(EXPIRY_KEY, data.tokenExpiry);
+
+    resetIdleTimer();
+    redirectByRole(data.user.role);
+
+  } catch(err) {
+    showLoginError('เกิดข้อผิดพลาด: ' + err.message);
+  } finally {
+    showLoginLoading(false);
+  }
+}
+
+// ===== Current User =====
+function getCurrentUser() {
+  try {
+    const u = localStorage.getItem(USER_KEY);
+    return u ? JSON.parse(u) : null;
+  } catch(e) { return null; }
+}
+
+function getToken() {
+  return localStorage.getItem(TOKEN_KEY) || '';
+}
+
+function isLoggedIn() {
+  const token  = getToken();
+  const expiry = localStorage.getItem(EXPIRY_KEY);
+  if (!token || !expiry) return false;
+  return new Date(expiry) > new Date();
+}
+
+// ===== Role Guard =====
+function requireRole(...roles) {
+  if (!isLoggedIn()) {
+    forceRelogin('session_expired');
+    return false;
+  }
+  const user = getCurrentUser();
+  if (!user || !roles.includes(user.role)) {
+    forceRelogin('unauthorized');
+    return false;
+  }
+  return true;
+}
+
+function requireAnyLogin() {
+  if (!isLoggedIn()) {
+    forceRelogin('session_expired');
+    return false;
+  }
+  return true;
+}
+
+function redirectByRole(role) {
+  location.hash = '#/dashboard';
+  showApp();
+  route();
+}
+
+// ===== Logout =====
+async function logout() {
+  const token = getToken();
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(EXPIRY_KEY);
+  clearIdleTimer();
+  resetConfigCache();
+  try { google.accounts.id.disableAutoSelect(); } catch(e) {}
+  hardReload('');
+}
+
+// ===== Idle Timer =====
+function resetIdleTimer() {
+  clearIdleTimer();
+  _idleTimer = setTimeout(() => {
+    showToast('หมดเวลาใช้งาน กรุณาเข้าสู่ระบบใหม่', 'warning');
+    setTimeout(() => logout(), 2000);
+  }, IDLE_LIMIT);
+}
+
+function clearIdleTimer() {
+  if (_idleTimer) clearTimeout(_idleTimer);
+}
+
+// รีเซ็ต idle เมื่อมี user action
+['click','keydown','mousemove','touchstart'].forEach(evt => {
+  document.addEventListener(evt, () => { if (isLoggedIn()) resetIdleTimer(); }, { passive: true });
+});
+
+// ===== Render User Info ใน Sidebar =====
+function renderUserInfo() {
+  const user = getCurrentUser();
+  if (!user) return;
+  const nameEl  = document.getElementById('user-name');
+  const roleEl  = document.getElementById('user-role');
+  const photoEl = document.getElementById('user-photo');
+  const roleMap = { admin: 'ผู้ดูแลระบบ', director: 'ผู้อำนวยการ', viewer: 'ผู้ชม' };
+  if (nameEl)  nameEl.textContent  = user.displayName || user.email;
+  if (roleEl)  roleEl.textContent  = roleMap[user.role] || user.role;
+  if (photoEl && user.photoUrl) {
+    photoEl.src = user.photoUrl;
+    photoEl.onerror = () => { photoEl.src = DEFAULT_AVATAR; };
+  }
+}
+
+// ===== ซ่อน/แสดง element ตาม role =====
+function applyRoleVisibility() {
+  const user = getCurrentUser();
+  if (!user) return;
+  document.querySelectorAll('[data-role]').forEach(el => {
+    const allowed = el.dataset.role.split(',').map(r => r.trim());
+    el.style.display = allowed.includes(user.role) ? '' : 'none';
+  });
+}
+
+function showLoginLoading(show) {
+  const btn = document.getElementById('google-btn-wrapper');
+  const spinner = document.getElementById('login-spinner');
+  if (btn)     btn.style.display     = show ? 'none' : 'block';
+  if (spinner) spinner.style.display = show ? 'flex' : 'none';
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+// ============================================================
+// api.js — Fetch wrapper สำหรับทุก GAS endpoint
+// ============================================================
+
+const GET_ACTIONS = new Set([
+  'getConfig','getTransactions','getDashboard','getBankAccounts',
+  'getVendors','getUserRole','getUsers','checkCloseReady','getDailyReport',
+  'getMonthlyReport','getBankRecon','getRegisterReport','getDropdownOptions',
+  'getAuditLog','getPendingCloseRequest','getSystemConfig','getMoneyTypes',
+]);
+
+async function apiCall(action, data = {}) {
+  if (!window.AppConfig.gasUrl) {
+    throw new Error('ระบบยังไม่โหลด config กรุณารีเฟรชหน้า');
+  }
+
+  const token  = getToken();
+  const isGet  = GET_ACTIONS.has(action);
+  const url    = window.AppConfig.gasUrl;
+
+  try {
+    let res;
+    if (isGet) {
+      const params = new URLSearchParams({ action, token, ...data });
+      res = await fetch(`${url}?${params}`, {
+        method: 'GET',
+        redirect: 'follow',
+      });
+    } else {
+      res = await fetch(url, {
+        method: 'POST',
+        redirect: 'follow',
+        body: JSON.stringify({ action, token, ...data }),
+      });
+    }
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+
+    if (json.error === 'Unauthorized — token ไม่ถูกต้องหรือหมดอายุ') {
+      showToast('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่', 'error');
+      setTimeout(() => logout(), 1500);
+      throw new Error('Unauthorized');
+    }
+
+    return json;
+  } catch(err) {
+    // Offline check
+    if (!navigator.onLine) {
+      showOfflineBanner(true);
+      throw new Error('ไม่มีการเชื่อมต่ออินเทอร์เน็ต');
+    }
+    throw err;
+  }
+}
+
+// ===== Offline Banner =====
+function showOfflineBanner(show) {
+  let banner = document.getElementById('offline-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'offline-banner';
+    banner.className = 'offline-banner';
+    banner.innerHTML = '⚠️ ไม่มีการเชื่อมต่ออินเทอร์เน็ต — ข้อมูลอาจไม่ทันสมัย';
+    document.body.prepend(banner);
+  }
+  banner.style.display = show ? 'flex' : 'none';
+}
+
+window.addEventListener('online',  () => showOfflineBanner(false));
+window.addEventListener('offline', () => showOfflineBanner(true));
+
+// ===== Convenience wrappers =====
+const API = {
+  getDashboard:           ()       => apiCall('getDashboard'),
+  getConfig:              ()       => apiCall('getConfig'),
+  updateConfig:           (data)   => apiCall('updateConfig', data),
+  getTransactions:        (filter) => apiCall('getTransactions', filter),
+  addTransaction:         (tx)     => apiCall('addTransaction', tx),
+  updateTransaction:      (tx)     => apiCall('updateTransaction', tx),
+  deleteTransaction:      (rowIndex) => apiCall('deleteTransaction', { rowIndex }),
+  getDropdownOptions:     ()       => apiCall('getDropdownOptions'),
+  getMoneyTypes:          ()       => apiCall('getMoneyTypes'),
+  getBankAccounts:        ()       => apiCall('getBankAccounts'),
+  addBankAccount:         (data)   => apiCall('addBankAccount', data),
+  updateBankAccount:      (data)   => apiCall('updateBankAccount', data),
+  getVendors:             ()       => apiCall('getVendors'),
+  addVendor:              (data)   => apiCall('addVendor', data),
+  getUsers:               ()       => apiCall('getUsers'),
+  addUser:                (data)   => apiCall('addUser', data),
+  updateUser:             (data)   => apiCall('updateUser', data),
+  checkCloseReady:        ()       => apiCall('checkCloseReady'),
+  createCloseRequest:     ()       => apiCall('createCloseRequest'),
+  getPendingCloseRequest: ()       => apiCall('getPendingCloseRequest'),
+  directorApprove:        (reqId)  => apiCall('directorApprove', { requestId: reqId }),
+  getDailyReport:         ()       => apiCall('getDailyReport'),
+  getMonthlyReport:       ()       => apiCall('getMonthlyReport'),
+  getBankRecon:           ()       => apiCall('getBankRecon'),
+  getRegisterReport:      (type)   => apiCall('getRegisterReport', { type }),
+  getAuditLog:            ()       => apiCall('getAuditLog'),
+};
+
+// ============================================================
+// dashboard.js — Dashboard logic, Charts, Money Flow SVG
+// ============================================================
+
+let monthlyChart = null;
+let pieChart     = null;
+
+async function loadDashboard() {
+  showLoading(true, 'กำลังโหลด Dashboard...');
+  try {
+    const data = await API.getDashboard();
+    if (data.error) { showToast(data.error, 'error'); return; }
+    renderKPIs(data.kpi);
+    renderMoneyFlow(data.moneyFlow, data.kpi);
+    renderMonthlyChart(data.monthlyData);
+    renderPieChart(data.moneyFlow);
+    renderBankStatus(data.bankStatus);
+    renderAlerts(data.alerts);
+    renderCategories(data.categories);
+    // ชื่อโรงเรียน
+    if (data.config?.schoolName) {
+      const el = document.getElementById('school-name-topbar');
+      if (el) el.textContent = data.config.schoolName;
+    }
+    if (data.config?.fiscalYear) {
+      const el = document.getElementById('fiscal-year-display');
+      if (el) el.textContent = data.config.fiscalYear;
+    }
+    const updEl = document.getElementById('last-updated');
+    if (updEl) updEl.textContent = 'อัปเดต ' + formatThaiDateTime(data.generatedAt);
+  } catch(err) {
+    showToast('โหลด Dashboard ไม่สำเร็จ: ' + err.message, 'error');
+  } finally {
+    showLoading(false);
+  }
+}
+
+// ===== KPI Cards =====
+function renderKPIs(kpi) {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = formatMoney(val); };
+  set('kpi-income',  kpi.totalIncome);
+  set('kpi-expense', kpi.totalExpense);
+  set('kpi-cash',    kpi.cashBalance);
+  set('kpi-bank',    kpi.bankTotal);
+
+  // Cash balance สีแดงถ้าติดลบ
+  const cashEl = document.getElementById('kpi-cash');
+  if (cashEl) cashEl.style.color = kpi.cashBalance < 0 ? 'var(--danger)' : 'var(--navy)';
+
+  // sidebar cash
+  const sideEl = document.getElementById('sidebar-cash-balance');
+  if (sideEl) {
+    sideEl.textContent = formatMoneyShort(kpi.cashBalance);
+    sideEl.classList.toggle('negative', kpi.cashBalance < 0);
+  }
+}
+
+// ===== Money Flow SVG =====
+function renderMoneyFlow(flow, kpi) {
+  const svg = document.getElementById('money-flow-svg');
+  if (!svg || !flow) return;
+  svg.innerHTML = '';
+
+  const sources = flow.sources || [];
+  const uses    = flow.uses    || [];
+  const W = 600, H = 220;
+  const centerX = W / 2;
+
+  // ===== Source nodes (ซ้าย) =====
+  const srcColors = ['#2980b9', '#c9a227', '#8e44ad'];
+  const srcY = sources.map((_, i) => 40 + i * 65);
+
+  sources.forEach((s, i) => {
+    const x = 20, y = srcY[i], w = 140, h = 50;
+    const color = srcColors[i % srcColors.length];
+    svg.innerHTML += `
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${color}" opacity="0.9"/>
+      <text x="${x+10}" y="${y+18}" class="flow-label" fill="#fff" font-size="11" font-weight="600">${s.name}</text>
+      <text x="${x+10}" y="${y+34}" class="flow-amount" fill="rgba(255,255,255,0.85)" font-size="10">฿${(s.amount||0).toLocaleString('th-TH')}</text>
+      <text x="${x+10}" y="${y+46}" class="flow-amount" fill="rgba(255,255,255,0.7)" font-size="10">${s.pct}%</text>`;
+  });
+
+  // ===== Center node =====
+  const cx = centerX - 55, cy = H / 2 - 35;
+  svg.innerHTML += `
+    <rect x="${cx}" y="${cy}" width="110" height="70" rx="10" fill="#1e3a5f"/>
+    <text x="${cx+55}" y="${cy+22}" class="flow-label" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">โรงเรียน</text>
+    <text x="${cx+55}" y="${cy+36}" class="flow-amount" fill="#c9a227" font-size="10" font-weight="700" text-anchor="middle">฿${formatMoneyShort(kpi?.totalIncome||0)}</text>
+    <text x="${cx+55}" y="${cy+50}" class="flow-amount" fill="rgba(255,255,255,0.65)" font-size="9" text-anchor="middle">รวมทั้งสิ้น</text>`;
+
+  // ===== Use nodes (ขวา) =====
+  const useColors = ['#27ae60', '#e67e22', '#7f8c8d'];
+  const useY = uses.map((_, i) => 25 + i * 60);
+
+  uses.forEach((u, i) => {
+    const x = W - 160, y = useY[i], w = 140, h = 50;
+    const color = useColors[i % useColors.length];
+    svg.innerHTML += `
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${color}" opacity="0.9"/>
+      <text x="${x+10}" y="${y+18}" class="flow-label" fill="#fff" font-size="11" font-weight="600">${u.name}</text>
+      <text x="${x+10}" y="${y+34}" class="flow-amount" fill="rgba(255,255,255,0.85)" font-size="10">฿${(u.amount||0).toLocaleString('th-TH')}</text>
+      <text x="${x+10}" y="${y+46}" class="flow-amount" fill="rgba(255,255,255,0.7)" font-size="10">${u.pct}%</text>`;
+  });
+
+  // ===== Bezier Paths =====
+  // source → center
+  sources.forEach((s, i) => {
+    const x1 = 160, y1 = srcY[i] + 25;
+    const x2 = cx, y2 = cy + 35;
+    const thickness = Math.max(3, Math.round((s.pct / 100) * 18));
+    const ctrl1X = (x1 + x2) / 2, ctrl2X = (x1 + x2) / 2;
+    svg.innerHTML += `<path d="M${x1},${y1} C${ctrl1X},${y1} ${ctrl2X},${y2} ${x2},${y2}" fill="none" stroke="${srcColors[i%srcColors.length]}" stroke-width="${thickness}" opacity="0.35"/>`;
+  });
+
+  // center → uses
+  uses.forEach((u, i) => {
+    const x1 = cx + 110, y1 = cy + 35;
+    const x2 = W - 160,  y2 = useY[i] + 25;
+    const thickness = Math.max(3, Math.round((u.pct / 100) * 18));
+    const ctrl1X = (x1 + x2) / 2, ctrl2X = (x1 + x2) / 2;
+    svg.innerHTML += `<path d="M${x1},${y1} C${ctrl1X},${y1} ${ctrl2X},${y2} ${x2},${y2}" fill="none" stroke="${useColors[i%useColors.length]}" stroke-width="${thickness}" opacity="0.35"/>`;
+  });
+}
+
+// ===== Monthly Bar Chart =====
+function renderMonthlyChart(monthlyData) {
+  const ctx = document.getElementById('monthly-chart');
+  if (!ctx) return;
+  if (monthlyChart) { monthlyChart.destroy(); monthlyChart = null; }
+
+  const labels  = (monthlyData || []).map(m => m.monthLabel);
+  const incomes  = (monthlyData || []).map(m => m.income);
+  const expenses = (monthlyData || []).map(m => m.expense);
+
+  // ถ้าไม่มีข้อมูลจาก GAS ใช้ placeholder
+  const finalLabels  = labels.length  ? labels  : ['ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.','มี.ค.'];
+  const finalIncome  = incomes.length ? incomes : [0,0,0,0,0,0];
+  const finalExpense = expenses.length? expenses: [0,0,0,0,0,0];
+
+  monthlyChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: finalLabels,
+      datasets: [
+        { label: 'รายรับ', data: finalIncome,  backgroundColor: '#2980b9', borderRadius: 5 },
+        { label: 'รายจ่าย', data: finalExpense, backgroundColor: '#e67e22', borderRadius: 5 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { position: 'top', labels: { font: { family: 'Sarabun', size: 11 } } } },
+      scales: {
+        y: { ticks: {
+          callback: v => '฿' + v.toLocaleString('th-TH'),
+          font: { family: 'Sarabun', size: 10 }
+        }, grid: { color: '#f0f4f8' } },
+        x: { ticks: { font: { family: 'Sarabun', size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ===== Pie Chart =====
+function renderPieChart(flow) {
+  const ctx = document.getElementById('pie-chart');
+  if (!ctx) return;
+  if (pieChart) { pieChart.destroy(); pieChart = null; }
+
+  const uses = flow?.uses || [
+    { name: 'เงินเดือน/ค่าจ้าง', pct: 40 },
+    { name: 'วัสดุ/ครุภัณฑ์',    pct: 35 },
+    { name: 'อื่นๆ',             pct: 25 },
+  ];
+  const colors = ['#27ae60','#e67e22','#7f8c8d'];
+
+  pieChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: uses.map(u => u.name),
+      datasets: [{ data: uses.map(u => u.pct), backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      cutout: '65%', responsive: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.parsed}%` } }
+      }
+    }
+  });
+
+  // Legend
+  const legend = document.getElementById('pie-legend');
+  if (legend) {
+    legend.innerHTML = uses.map((u, i) =>
+      `<div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${colors[i]};margin-right:6px"></span>${u.name} <strong>${u.pct}%</strong></div>`
+    ).join('');
+  }
+}
+
+// ===== Bank Status Table =====
+function renderBankStatus(bankStatus) {
+  const tbody = document.getElementById('bank-status-tbody');
+  if (!tbody) return;
+  if (!bankStatus || !bankStatus.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  tbody.innerHTML = bankStatus.map(b => {
+    const cls  = b.reconStatus === 'ตรงกัน' ? 'status-ok' : b.reconStatus === 'ยังไม่กระทบ' ? 'status-warn' : 'status-fail';
+    const icon = b.reconStatus === 'ตรงกัน' ? '✅' : b.reconStatus === 'ยังไม่กระทบ' ? '⏳' : '❌';
+    return `<tr>
+      <td><strong>${b.bank}</strong><br><small style="color:var(--text-muted)">${b.name}</small></td>
+      <td>${formatMoney(b.balance)}</td>
+      <td class="${cls}">${icon} ${b.reconStatus}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ===== Alerts =====
+function renderAlerts(alerts) {
+  const container = document.getElementById('alerts-container');
+  const countBadge = document.getElementById('alert-count');
+  if (!container) return;
+
+  const errors = (alerts || []).filter(a => a.status === 'error');
+  if (countBadge) {
+    countBadge.textContent  = errors.length;
+    countBadge.style.display = errors.length ? '' : 'none';
+  }
+
+  if (!alerts || !alerts.length) {
+    container.innerHTML = '<div class="alert-item alert-ok"><span class="alert-icon">✅</span><span class="alert-msg">ไม่มีรายการแจ้งเตือน</span></div>';
+    return;
+  }
+
+  container.innerHTML = alerts.map(a => {
+    const cls  = a.status === 'error' ? 'alert-error' : a.status === 'warning' ? 'alert-warn' : 'alert-ok';
+    const icon = a.status === 'error' ? '🔴' : a.status === 'warning' ? '🟡' : '✅';
+    return `<div class="alert-item ${cls}">
+      <span class="alert-icon">${icon}</span>
+      <div style="flex:1"><div class="alert-msg">${a.message}</div>${a.count ? `<div class="alert-detail">${a.count} รายการ</div>` : ''}</div>
+      ${a.fix ? `<a class="alert-fix" href="${a.fix}">แก้ไข</a>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ===== Categories Table =====
+function renderCategories(categories) {
+  const tbody = document.getElementById('categories-tbody');
+  if (!tbody) return;
+  if (!categories || !categories.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  const total = { opening: 0, income: 0, expense: 0, balance: 0 };
+  tbody.innerHTML = categories.map(c => {
+    total.opening += c.opening || 0;
+    total.income  += c.income  || 0;
+    total.expense += c.expense || 0;
+    total.balance += c.balance || 0;
+    const neg = c.balance < 0;
+    return `<tr>
+      <td><strong>${c.name}</strong></td>
+      <td>${formatMoney(c.opening)}</td>
+      <td style="color:var(--success)">${formatMoney(c.income)}</td>
+      <td style="color:var(--danger)">${formatMoney(c.expense)}</td>
+      <td style="color:${neg ? 'var(--danger)' : 'var(--navy)'};font-weight:700">${formatMoney(c.balance)}</td>
+    </tr>`;
+  }).join('') +
+  `<tr style="background:#f7faff;font-weight:700">
+    <td>รวมทั้งสิ้น</td>
+    <td>${formatMoney(total.opening)}</td>
+    <td style="color:var(--success)">${formatMoney(total.income)}</td>
+    <td style="color:var(--danger)">${formatMoney(total.expense)}</td>
+    <td style="color:${total.balance<0?'var(--danger)':'var(--navy)'}">${formatMoney(total.balance)}</td>
+  </tr>`;
+}
+
+// ============================================================
+// transactions.js — CRUD สมุดเงินสด
+// ============================================================
+
+let _dropdownOptions = null;
+let _currentPage = 1;
+let _editingRowIndex = null;
+const debouncedLoad = debounce(() => loadTransactions(), 500);
+
+// ===== โหลด dropdown options =====
+async function loadDropdowns() {
+  try {
+    _dropdownOptions = await API.getDropdownOptions();
+    if (_dropdownOptions.error) return;
+
+    // ประเภทเงิน
+    const mtSelect = document.getElementById('tx-moneytype');
+    const filterMt = document.getElementById('filter-moneytype');
+    _dropdownOptions.moneyTypes.forEach(t => {
+      const opt = `<option value="${t.type}">${t.type}</option>`;
+      if (mtSelect) mtSelect.innerHTML += opt;
+      if (filterMt) filterMt.innerHTML += opt;
+    });
+
+    // บัญชีธนาคาร (เพิ่มหลัง 'เงินสด')
+    const accSelect = document.getElementById('tx-account');
+    if (accSelect && _dropdownOptions.banks) {
+      _dropdownOptions.banks.forEach(b => {
+        accSelect.innerHTML += `<option value="${b.id}">${b.bank} — ${b.name} (${b.accountNo})</option>`;
+      });
+    }
+
+    // ผู้รับเงิน datalist
+    const datalist = document.getElementById('vendor-datalist');
+    if (datalist && _dropdownOptions.vendors) {
+      _dropdownOptions.vendors.forEach(v => {
+        datalist.innerHTML += `<option value="${v.name}">`;
+      });
+    }
+  } catch(e) { console.error('loadDropdowns:', e); }
+}
+
+// ===== โหลดรายการ =====
+async function loadTransactions() {
+  renderSkeleton('tx-tbody', 8, 10);
+  const filter = {
+    startDate: document.getElementById('filter-start')?.value || '',
+    endDate:   document.getElementById('filter-end')?.value   || '',
+    moneyType: document.getElementById('filter-moneytype')?.value || '',
+    status:    document.getElementById('filter-status')?.value    || '',
+    search:    document.getElementById('filter-search')?.value    || '',
+    page:      _currentPage,
+    pageSize:  50,
+  };
+  try {
+    const data = await API.getTransactions(filter);
+    if (data.error) { showToast(data.error, 'error'); return; }
+    renderTransactions(data.transactions, data);
+    renderPagination('tx-pagination', data.page, data.pages, goToPage);
+    updateSummary(data.transactions, data.total);
+  } catch(e) {
+    showToast('โหลดรายการไม่สำเร็จ: ' + e.message, 'error');
+  }
+}
+
+function goToPage(page) {
+  _currentPage = page;
+  loadTransactions();
+}
+
+function clearFilters() {
+  ['filter-start','filter-end','filter-moneytype','filter-status','filter-search'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  _currentPage = 1;
+  loadTransactions();
+}
+
+// ===== Render Table =====
+function renderTransactions(txList, meta) {
+  const tbody = document.getElementById('tx-tbody');
+  if (!tbody) return;
+  const user = getCurrentUser();
+  const isAdmin = user?.role === 'admin';
+
+  if (!txList || !txList.length) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text-muted)">ไม่มีรายการ</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = txList.map(tx => {
+    const statusClass = { 'ปกติ':'badge-success','รอตรวจ':'badge-warning','ขอเอกสารเพิ่ม':'badge-danger','ยกเลิก':'badge-muted' }[tx.status] || 'badge-info';
+    const isIncome = ['รับเงินสด','รับเข้าบัญชี'].includes(tx.txType);
+    const amtColor = isIncome ? 'var(--success)' : tx.status === 'ยกเลิก' ? 'var(--text-muted)' : 'var(--danger)';
+
+    return `<tr>
+      <td style="white-space:nowrap">${formatThaiDate(tx.date)}</td>
+      <td><code style="font-size:0.8rem">${tx.docNo}</code></td>
+      <td>${tx.moneyType}</td>
+      <td>${tx.txType}</td>
+      <td style="font-size:0.78rem">${tx.account}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${tx.description}">${tx.description}</td>
+      <td style="color:${amtColor};font-weight:600;white-space:nowrap">${isIncome ? '+' : '−'}${formatMoney(tx.amount)}</td>
+      <td><span class="badge badge-info" style="font-size:0.7rem">${tx.category}</span></td>
+      <td><span class="badge ${statusClass}">${tx.status}</span></td>
+      ${isAdmin ? `<td style="white-space:nowrap">
+        <button class="btn btn-sm btn-secondary btn-icon" onclick="editTx(${JSON.stringify(tx).replace(/"/g,'&quot;')})" title="แก้ไข">✏️</button>
+        <button class="btn btn-sm btn-danger btn-icon" onclick="deleteTx(${tx.rowIndex},'${tx.docNo}')" title="ลบ">🗑</button>
+      </td>` : '<td></td>'}
+    </tr>`;
+  }).join('');
+}
+
+function updateSummary(txList, total) {
+  const incomeTypes = ['รับเงินสด','รับเข้าบัญชี'];
+  let incomeSum = 0, expenseSum = 0;
+  (txList || []).forEach(tx => {
+    if (tx.status === 'ยกเลิก') return;
+    if (incomeTypes.includes(tx.txType)) incomeSum += tx.amount;
+    else expenseSum += tx.amount;
+  });
+  const el = id => document.getElementById(id);
+  if (el('tx-count'))       el('tx-count').textContent       = (total || 0).toLocaleString() + ' รายการ';
+  if (el('tx-income-sum'))  el('tx-income-sum').textContent  = formatMoney(incomeSum);
+  if (el('tx-expense-sum')) el('tx-expense-sum').textContent = formatMoney(expenseSum);
+}
+
+// ===== Modal Open/Close =====
+function openAddModal() {
+  _editingRowIndex = null;
+  document.getElementById('tx-modal-title').textContent = 'เพิ่มรายการใหม่';
+  document.getElementById('tx-row-index').value = '';
+  clearTxForm();
+  document.getElementById('tx-date').value = todayISO();
+  openModal('tx-modal');
+  suggestNextDocNo();
+}
+
+function editTx(tx) {
+  _editingRowIndex = tx.rowIndex;
+  document.getElementById('tx-modal-title').textContent = 'แก้ไขรายการ';
+  document.getElementById('tx-row-index').value = tx.rowIndex;
+  document.getElementById('tx-date').value        = tx.date;
+  document.getElementById('tx-docno').value       = tx.docNo;
+  document.getElementById('tx-moneytype').value   = tx.moneyType;
+  document.getElementById('tx-category').value    = tx.category;
+  document.getElementById('tx-txtype').value      = tx.txType;
+  document.getElementById('tx-account').value     = tx.account;
+  document.getElementById('tx-vendor').value      = tx.vendor;
+  document.getElementById('tx-description').value = tx.description;
+  document.getElementById('tx-amount').value      = tx.amount;
+  document.getElementById('tx-status').value      = tx.status;
+  clearFieldErrors();
+  openModal('tx-modal');
+}
+
+function clearTxForm() {
+  ['tx-date','tx-docno','tx-moneytype','tx-category','tx-txtype','tx-account','tx-vendor','tx-description','tx-amount'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('tx-status').value = 'ปกติ';
+  clearFieldErrors();
+}
+
+function clearFieldErrors() {
+  document.querySelectorAll('.field-error').forEach(e => { e.textContent = ''; e.classList.remove('show'); });
+  document.querySelectorAll('input.error,select.error').forEach(e => e.classList.remove('error'));
+  const wa = document.getElementById('warn-amount');
+  if (wa) wa.style.display = 'none';
+}
+
+// ===== Auto-fill =====
+function onMoneyTypeChange() {
+  const mt  = document.getElementById('tx-moneytype').value;
+  const opt = (_dropdownOptions?.moneyTypes || []).find(t => t.type === mt);
+  document.getElementById('tx-category').value = opt ? opt.category : '';
+}
+
+function onTxTypeChange() {
+  const txType  = document.getElementById('tx-txtype').value;
+  const accSel  = document.getElementById('tx-account');
+  const cashTypes = ['รับเงินสด','จ่ายเงินสด'];
+  const bankTypes = ['รับเข้าบัญชี','จ่ายจากบัญชี','ฝากธนาคาร','ถอนธนาคาร'];
+  if (cashTypes.includes(txType)) {
+    accSel.value = 'เงินสด';
+  } else if (bankTypes.includes(txType) && accSel.value === 'เงินสด') {
+    accSel.value = '';
+  }
+}
+
+function onAmountChange() {
+  const amt       = Number(document.getElementById('tx-amount').value);
+  const threshold = _dropdownOptions?.alertThreshold || 100000;
+  const warnEl    = document.getElementById('warn-amount');
+  if (warnEl) {
+    if (amt > threshold) {
+      warnEl.textContent = `⚠️ จำนวนเงินสูงกว่าเกณฑ์ (${threshold.toLocaleString()} บาท) กรุณาตรวจสอบ`;
+      warnEl.style.display = 'block';
+    } else { warnEl.style.display = 'none'; }
+  }
+}
+
+let _docNoTimer = null;
+function checkDocNoDuplicate() {
+  clearTimeout(_docNoTimer);
+  _docNoTimer = setTimeout(async () => {
+    const docNo = document.getElementById('tx-docno').value.trim();
+    if (!docNo) return;
+    // Client-side ตรวจกับรายการที่โหลดมาแล้ว (server จะตรวจซ้ำตอน save)
+  }, 600);
+}
+
+async function suggestNextDocNo() {
+  // ดึง docNo ล่าสุดแล้วแนะนำถัดไป
+  try {
+    const data = await API.getTransactions({ page: 1, pageSize: 1 });
+    if (data.transactions && data.transactions.length) {
+      const last = data.transactions[0].docNo;
+      const match = last.match(/(\D+)(\d+)$/);
+      if (match) {
+        const prefix = match[1];
+        const num    = parseInt(match[2]) + 1;
+        document.getElementById('tx-docno').value = prefix + String(num).padStart(match[2].length, '0');
+      }
+    }
+  } catch(e) {}
+}
+
+// ===== Save =====
+async function saveTx() {
+  clearFieldErrors();
+  const tx = {
+    rowIndex:    _editingRowIndex || undefined,
+    date:        document.getElementById('tx-date').value,
+    docNo:       document.getElementById('tx-docno').value.trim(),
+    moneyType:   document.getElementById('tx-moneytype').value,
+    txType:      document.getElementById('tx-txtype').value,
+    account:     document.getElementById('tx-account').value,
+    vendor:      document.getElementById('tx-vendor').value,
+    description: document.getElementById('tx-description').value.trim(),
+    amount:      Number(document.getElementById('tx-amount').value),
+    status:      document.getElementById('tx-status').value,
+  };
+
+  const btn = document.getElementById('btn-save-tx');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+
+  try {
+    const res = _editingRowIndex
+      ? await API.updateTransaction(tx)
+      : await API.addTransaction(tx);
+
+    if (!res.success && res.errors) {
+      res.errors.forEach(err => {
+        if (err.severity !== 'warning') {
+          const errEl = document.getElementById('err-' + err.field);
+          const inEl  = document.getElementById('tx-' + err.field);
+          if (errEl) { errEl.textContent = err.msg; errEl.classList.add('show'); }
+          if (inEl)  inEl.classList.add('error');
+        }
+      });
+      const warnings = res.errors.filter(e => e.severity === 'warning');
+      if (warnings.length && res.errors.every(e => e.severity === 'warning')) {
+        // มีเฉพาะ warning → ถาม confirm
+        const ok = await confirmDialog('ยืนยันการบันทึก',
+          warnings.map(w => '⚠️ ' + w.msg).join('<br>') + '<br><br>ต้องการบันทึกต่อหรือไม่?',
+          'บันทึกต่อ');
+        if (!ok) return;
+        // บันทึกซ้ำ (server จะไม่ block warning)
+        const res2 = _editingRowIndex ? await API.updateTransaction({...tx, forceWarning: true}) : await API.addTransaction({...tx, forceWarning: true});
+        if (res2.success) { closeModal('tx-modal'); loadTransactions(); showToast('บันทึกสำเร็จ', 'success'); }
+      }
+      return;
+    }
+    if (res.error) { showToast(res.error, 'error'); return; }
+    closeModal('tx-modal');
+    await loadTransactions();
+    showToast(_editingRowIndex ? 'แก้ไขรายการสำเร็จ' : 'เพิ่มรายการสำเร็จ', 'success');
+    loadSidebarStats();
+  } catch(e) {
+    showToast('เกิดข้อผิดพลาด: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '💾 บันทึก';
+  }
+}
+
+// ===== Delete =====
+async function deleteTx(rowIndex, docNo) {
+  const ok = await confirmDialog('ยืนยันการยกเลิก', `ยืนยันการยกเลิกรายการ <strong>${docNo}</strong>?<br><small>รายการจะถูกเปลี่ยนสถานะเป็น "ยกเลิก"</small>`, 'ยกเลิกรายการ');
+  if (!ok) return;
+  try {
+    const res = await API.deleteTransaction(rowIndex);
+    if (res.success) { showToast('ยกเลิกรายการสำเร็จ', 'success'); loadTransactions(); }
+    else showToast(res.error || 'เกิดข้อผิดพลาด', 'error');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ===== Export CSV =====
+async function exportTxCSV() {
+  showLoading(true, 'กำลังดาวน์โหลด...');
+  try {
+    const filter = {
+      startDate: document.getElementById('filter-start')?.value || '',
+      endDate:   document.getElementById('filter-end')?.value   || '',
+      moneyType: document.getElementById('filter-moneytype')?.value || '',
+      status:    document.getElementById('filter-status')?.value    || '',
+      search:    document.getElementById('filter-search')?.value    || '',
+      pageSize:  9999,
+    };
+    const data = await API.getTransactions(filter);
+    exportCSV(data.transactions, `สมุดเงินสด_${todayISO()}.csv`);
+  } catch(e) { showToast(e.message, 'error'); }
+  finally { showLoading(false); }
+}
+
+// ============================================================
+// Import CSV / Bulk Upload
+// ============================================================
+
+function openImportModal() {
+  const modal = document.getElementById('import-modal');
+  if (modal) { document.getElementById('import-file').value = ''; document.getElementById('import-preview').innerHTML = ''; openModal('import-modal'); }
+}
+
+async function handleImportFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  const rows  = parseCSV(text);
+  if (!rows.length) { showToast('ไฟล์ไม่มีข้อมูล','warning'); return; }
+  renderImportPreview(rows);
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim());
+  return lines.slice(1).map(line => {
+    // handle quoted values
+    const vals = [];
+    let inQ = false, cur = '';
+    for (const ch of line) {
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    vals.push(cur.trim());
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = vals[i] || ''; });
+    return obj;
+  });
+}
+
+function renderImportPreview(rows) {
+  const container = document.getElementById('import-preview');
+  const mapped = rows.map(mapCSVRow);
+  const colMap = { date:'วันที่', docNo:'เลขที่เอกสาร', moneyType:'ประเภทเงิน', txType:'ประเภทรายการ', account:'บัญชี/ช่องทาง', vendor:'คู่สัญญา', description:'รายละเอียด', amount:'จำนวนเงิน', status:'สถานะ' };
+  container.innerHTML = `
+    <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:8px">พบ ${rows.length} รายการ — ตรวจสอบก่อนนำเข้า</div>
+    <div class="table-wrapper"><table>
+      <thead><tr>${Object.values(colMap).map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+      <tbody>${mapped.map(r => `<tr>${Object.keys(colMap).map(k=>`<td style="font-size:.78rem">${r[k]||''}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>`;
+  document.getElementById('import-preview').dataset.rows = JSON.stringify(mapped);
+  document.getElementById('btn-confirm-import').disabled = false;
+}
+
+function mapCSVRow(row) {
+  // รองรับทั้ง header ภาษาไทยและ English
+  return {
+    date:        row['วันที่']          || row['date']        || '',
+    docNo:       row['เลขที่เอกสาร']   || row['docNo']       || '',
+    moneyType:   row['ประเภทเงิน']     || row['moneyType']   || '',
+    txType:      row['ประเภทรายการ']   || row['txType']      || '',
+    account:     row['บัญชี/ช่องทาง'] || row['account']     || '',
+    vendor:      row['คู่สัญญา']       || row['vendor']      || '',
+    description: row['รายละเอียด']     || row['description'] || '',
+    amount:      Number(row['จำนวนเงิน'] || row['amount'] || 0),
+    status:      row['สถานะ']          || row['status']      || 'ปกติ',
+  };
+}
+
+async function confirmImport() {
+  const previewEl = document.getElementById('import-preview');
+  const rows = JSON.parse(previewEl.dataset.rows || '[]');
+  if (!rows.length) return;
+
+  const btn = document.getElementById('btn-confirm-import');
+  btn.disabled = true; btn.textContent = '⏳ กำลังนำเข้า...';
+  showLoading(true, `กำลังนำเข้า ${rows.length} รายการ...`);
+
+  try {
+    const res = await apiCall('importTransactions', { rows });
+    if (res.success) {
+      let msg = `นำเข้าสำเร็จ ${res.imported} รายการ`;
+      if (res.errorCount) msg += ` | มี ${res.errorCount} รายการที่มีข้อผิดพลาด`;
+      showToast(msg, res.errorCount ? 'warning' : 'success', 5000);
+      if (res.errors && res.errors.length) {
+        const errMsg = res.errors.slice(0,3).map(e=>`แถว ${e.row} (${e.docNo}): ${e.errors.join(', ')}`).join('\n');
+        console.warn('Import errors:\n' + errMsg);
+      }
+      closeModal('import-modal');
+      loadTransactions();
+    } else {
+      showToast(res.error || 'เกิดข้อผิดพลาด','error');
+    }
+  } catch(e) {
+    showToast(e.message,'error');
+  } finally {
+    showLoading(false);
+    btn.disabled = false; btn.textContent = '📥 นำเข้าข้อมูล';
+  }
+}
+
+// Template CSV สำหรับ download
+function downloadTemplate() {
+  const headers = 'วันที่,เลขที่เอกสาร,ประเภทเงิน,ประเภทรายการ,บัญชี/ช่องทาง,คู่สัญญา,รายละเอียด,จำนวนเงิน,สถานะ';
+  const example = '2024-10-01,RB001,เงินอุดหนุน,รับเข้าบัญชี,BNK001,สพฐ.,เงินอุดหนุนภาคเรียนที่ 1/2568,150000,ปกติ';
+  const csv     = headers + '\n' + example;
+  const blob    = new Blob(['\uFEFF' + csv], { type:'text/csv;charset=utf-8;' });
+  const url     = URL.createObjectURL(blob);
+  const a       = document.createElement('a');
+  a.href = url; a.download = 'template-import.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// fiscal-year.js — Checklist + Dual Approval logic
+// ============================================================
+
+const CHECKS_META = [
+  { code: 'PENDING_DOCS',      label: 'ไม่มีรายการรอตรวจ / ขอเอกสารเพิ่ม' },
+  { code: 'NEGATIVE_CASH',     label: 'เงินสดคงเหลือไม่ติดลบ' },
+  { code: 'NEGATIVE_CAT',      label: 'ทุกหมวดเงินคงเหลือไม่ติดลบ' },
+  { code: 'RECON_FAIL',        label: 'กระทบยอดธนาคารตรงกับ Statement' },
+  { code: 'CONFIG_INCOMPLETE', label: 'ตั้งค่าระบบครบถ้วน' },
+  { code: 'ZERO_AMOUNT',       label: 'ไม่มีรายการจำนวนเงิน <= 0' },
+  { code: 'BALANCE_DIFF',      label: 'ยอดรวม 3 หมวด = เงินสด + ธนาคาร' },
+];
+
+let _checkResult = null;
+let _pendingRequest = null;
+const user = () => getCurrentUser();
+
+async function loadFiscalYearPage() {
+  // แสดงปีงบ
+  const fyEl = document.getElementById('fy-year-display');
+  if (fyEl) fyEl.textContent = window.AppConfig.currentFiscalYear || '';
+
+  // ตรวจว่ามี pending request อยู่ไหม
+  await checkPendingRequest();
+  // รัน checklist
+  await runChecklist();
+}
+
+// ===== ตรวจ Pending Request =====
+async function checkPendingRequest() {
+  try {
+    const res = await API.getPendingCloseRequest();
+    _pendingRequest = res.request || null;
+
+    const dirBox   = document.getElementById('director-request-box');
+    const blockBan = document.getElementById('block-banner');
+    const pendMsg  = document.getElementById('admin-pending-msg');
+
+    if (_pendingRequest) {
+      // มี pending → แสดง block banner
+      if (blockBan) blockBan.style.display = 'flex';
+
+      // Director เห็น approve box
+      if (dirBox && user()?.role === 'director') {
+        dirBox.style.display = 'block';
+        const infoEl = document.getElementById('dir-request-info');
+        if (infoEl) infoEl.textContent = `ส่งโดย ${_pendingRequest.adminEmail} เมื่อ ${formatThaiDateTime(_pendingRequest.createdAt)}`;
       }
 
-      // ถ้า login อยู่แล้ว redirect
-      if (isLoggedIn()) { window.location.href = 'dashboard.html'; return; }
+      // Admin เห็นข้อความ รอ Director
+      if (pendMsg && user()?.role === 'admin') {
+        pendMsg.style.display = 'block';
+        // ซ่อนปุ่ม Admin confirm
+        const btnAdmin = document.getElementById('btn-admin-confirm');
+        if (btnAdmin) btnAdmin.style.display = 'none';
+      }
 
-      // Init Google Sign-In
-      initGoogleAuth();
-      renderGoogleButton('google-btn-wrapper');
+      // step2 = waiting
+      setStepState(2, 'waiting', '⏳ รอผู้อำนวยการอนุมัติ');
+    } else {
+      if (blockBan) blockBan.style.display = 'none';
+      if (dirBox)   dirBox.style.display   = 'none';
+      if (pendMsg)  pendMsg.style.display   = 'none';
+    }
+  } catch(e) { console.error('checkPendingRequest:', e); }
+}
+
+// ===== Checklist =====
+async function runChecklist() {
+  const container = document.getElementById('checklist-container');
+  const btn       = document.getElementById('btn-refresh-check');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังตรวจสอบ...'; }
+
+  if (container) {
+    container.innerHTML = CHECKS_META.map(c =>
+      `<div class="check-item" id="check-${c.code}" style="opacity:.5">
+        <span class="check-icon">⏳</span>
+        <span class="check-label">${c.label}</span>
+        <span class="check-detail"></span>
+        <span></span>
+      </div>`
+    ).join('');
+  }
+
+  try {
+    _checkResult = await API.checkCloseReady();
+    renderChecklist(_checkResult);
+    updateStepStates(_checkResult);
+  } catch(e) {
+    showToast('ตรวจสอบไม่สำเร็จ: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 ตรวจสอบอีกครั้ง'; }
+  }
+}
+
+function renderChecklist(result) {
+  const container = document.getElementById('checklist-container');
+  if (!container) return;
+  const failedCodes = (result.issues || []).map(i => i.code);
+
+  container.innerHTML = CHECKS_META.map(c => {
+    const failed = failedCodes.includes(c.code);
+    const issue  = result.issues?.find(i => i.code === c.code);
+    const cls    = failed ? 'failed' : 'passed';
+    const icon   = failed ? '❌' : '✅';
+    const fixMap = {
+      PENDING_DOCS:      'transactions.html?status=รอตรวจ',
+      NEGATIVE_CASH:     'transactions.html',
+      NEGATIVE_CAT:      'reports.html',
+      RECON_FAIL:        'reports.html#recon',
+      CONFIG_INCOMPLETE: 'settings.html',
+      ZERO_AMOUNT:       'transactions.html?amount=zero',
+      BALANCE_DIFF:      'reports.html#balance',
+    };
+    return `<div class="check-item ${cls}" id="check-${c.code}">
+      <span class="check-icon">${icon}</span>
+      <span class="check-label">${c.label}</span>
+      <span class="check-detail">${failed && issue ? issue.msg : ''}</span>
+      ${failed ? `<a class="check-fix-link" href="${fixMap[c.code]||'#'}">แก้ไข →</a>` : '<span></span>'}
+    </div>`;
+  }).join('');
+
+  // All pass banner
+  const bannerPass  = document.getElementById('all-pass-banner');
+  if (bannerPass) bannerPass.style.display = result.ready ? 'block' : 'none';
+}
+
+function updateStepStates(result) {
+  // Step 1 — Checklist
+  setStepState(1, result.ready ? 'done' : 'pending', result.ready ? '✅ ผ่านทุกเงื่อนไข' : `❌ ยังไม่ผ่าน ${result.issues?.length} เงื่อนไข`);
+
+  // Step 2 — Admin Confirm (เปิดได้ถ้า ready และไม่มี pending request)
+  const btnAdmin = document.getElementById('btn-admin-confirm');
+  const canAdmin = result.ready && !_pendingRequest && user()?.role === 'admin';
+  if (btnAdmin) { btnAdmin.disabled = !canAdmin; }
+  if (!_pendingRequest) {
+    setStepState(2, result.ready ? 'pending' : 'locked', result.ready ? '🔓 พร้อมสำหรับ Admin ยืนยัน' : '🔒 รอให้ผ่านทุกเงื่อนไขก่อน');
+  }
+
+  // Step 3 — Director (locked จนกว่า Admin จะกด)
+  if (!_pendingRequest) {
+    setStepState(3, 'locked', '🔒 รอ Admin ยืนยันก่อน');
+  } else {
+    setStepState(3, 'waiting', '⏳ รอ ผอ. อนุมัติ');
+    // Director เปิดปุ่ม approve
+    const btnDir = document.getElementById('btn-director-approve');
+    if (btnDir && user()?.role === 'director') btnDir.disabled = !result.ready;
+  }
+}
+
+function setStepState(stepNum, state, statusText) {
+  const numEl = document.getElementById(`step${stepNum}-num`);
+  const statEl = document.getElementById(`step${stepNum}-status`);
+  if (numEl) {
+    numEl.className = 'fy-step-num ' + state;
+    const icons = { done:'✅', pending:'⚡', waiting:'⏳', locked:'🔒' };
+    numEl.textContent = icons[state] || stepNum;
+  }
+  if (statEl) { statEl.textContent = statusText || ''; statEl.style.color = state === 'done' ? 'var(--success)' : state === 'waiting' ? 'var(--warning)' : 'var(--text-muted)'; }
+}
+
+// ===== Admin Confirm =====
+async function adminConfirm() {
+  if (!_checkResult?.ready) { showToast('กรุณาผ่านทุกเงื่อนไขก่อน', 'warning'); return; }
+
+  const ok = await confirmDialog(
+    '✅ Admin ยืนยันการปิดปีงบประมาณ',
+    `คุณกำลังจะส่ง Request ปิดปีงบประมาณ <strong>${window.AppConfig.currentFiscalYear}</strong> ไปให้ ผู้อำนวยการอนุมัติ<br><br>ระบบจะ Archive ข้อมูลทั้งหมดและสร้าง Sheet ปีงบใหม่โดยอัตโนมัติ`,
+    'ส่ง Request ให้ ผอ. อนุมัติ'
+  );
+  if (!ok) return;
+
+  const btn = document.getElementById('btn-admin-confirm');
+  btn.disabled = true; btn.textContent = '⏳ กำลังส่ง...';
+  try {
+    const res = await API.createCloseRequest();
+    if (res.success) {
+      showToast('ส่ง Request ให้ ผอ. แล้ว กรุณารอการอนุมัติ', 'success');
+      setStepState(2, 'done', '✅ Admin ยืนยันแล้ว — รอ ผอ. อนุมัติ');
+      setStepState(3, 'waiting', '⏳ รอ ผอ. อนุมัติ');
+      document.getElementById('admin-pending-msg').style.display = 'block';
+      btn.style.display = 'none';
+      document.getElementById('block-banner').style.display = 'flex';
+      _pendingRequest = { requestId: res.requestId };
+    } else if (res.issues) {
+      showToast('ข้อมูลยังไม่ครบ: ' + res.issues[0]?.msg, 'error');
+    } else {
+      showToast(res.error || 'เกิดข้อผิดพลาด', 'error');
+    }
+  } catch(e) { showToast(e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '✅ Admin ยืนยันพร้อมปิดงบ'; }
+}
+
+// ===== Director Approve =====
+async function directorApprove() {
+  const ok = await confirmDialog(
+    '🔐 ผู้อำนวยการอนุมัติปิดปีงบประมาณ',
+    `ท่านกำลังอนุมัติปิดปีงบประมาณ <strong>${window.AppConfig.currentFiscalYear}</strong><br><br>
+    <strong>ระบบจะดำเนินการ:</strong><br>
+    📁 Archive Sheet ปัจจุบันไปยัง Google Drive<br>
+    📊 สร้าง Sheet ปีงบใหม่โดยอัตโนมัติ<br>
+    🔗 Frontend เชื่อมกับ Sheet ใหม่ทันที<br><br>
+    <span style="color:var(--danger)">⚠️ การดำเนินการนี้ไม่สามารถย้อนกลับได้</span>`,
+    'อนุมัติปิดปีงบประมาณ'
+  );
+  if (!ok) return;
+
+  // แสดง lock overlay
+  document.getElementById('lock-overlay').style.display = 'flex';
+
+  try {
+    const requestId = _pendingRequest?.requestId;
+    const res = await API.directorApprove(requestId);
+
+    document.getElementById('lock-overlay').style.display = 'none';
+
+    if (res.success) {
+      // แสดง success
+      const successBox = document.getElementById('archive-success');
+      successBox.style.display = 'block';
+      document.getElementById('archive-success-msg').textContent =
+        `ปีงบ ${res.oldFiscalYear} ถูก Archive แล้ว — ปีงบ ${res.newFiscalYear} พร้อมใช้งาน`;
+      const archLink    = document.getElementById('archive-link');
+      const newSheetLink = document.getElementById('new-sheet-link');
+      if (archLink && res.archiveId)    archLink.href    = `https://docs.google.com/spreadsheets/d/${res.archiveId}`;
+      if (newSheetLink && res.newSheetUrl) newSheetLink.href = res.newSheetUrl;
+
+      // รีเซ็ต config cache
+      resetConfigCache();
+      showToast('🎉 ปิดปีงบประมาณสำเร็จ!', 'success', 6000);
+    } else if (res.issues) {
+      showToast('ไม่สามารถปิดงบได้: ' + res.issues[0]?.msg, 'error');
+      runChecklist();
+    } else {
+      showToast(res.error || 'เกิดข้อผิดพลาด', 'error');
+    }
+  } catch(e) {
+    document.getElementById('lock-overlay').style.display = 'none';
+    showToast('เกิดข้อผิดพลาด: ' + e.message, 'error');
+  }
+}
+
+
+// ---------- page: bank-accounts ----------
+let _editBank = null;
+  
+  async function loadBanks() {
+    const res = await API.getBankAccounts();
+    const tbody = document.getElementById('bank-tbody');
+    const isAdmin = getCurrentUser()?.role === 'admin';
+    tbody.innerHTML = (res.accounts || []).map(b => `<tr>
+      <td><code>${b['รหัสบัญชี']||b.id||''}</code></td>
+      <td>${b['ธนาคาร']||''}</td><td>${b['เลขที่บัญชี']||''}</td>
+      <td>${b['ชื่อบัญชี']||''}</td><td><span class="badge badge-info">${b['หมวดเงิน']||''}</span></td>
+      <td>${formatMoney(b['ยอดยกมา (บาท)']||0)}</td>
+      <td><span class="badge ${b['สถานะ']==='ใช้งาน'?'badge-success':'badge-muted'}">${b['สถานะ']||''}</span></td>
+      ${isAdmin ? `<td><button class="btn btn-sm btn-secondary" onclick='editBank(${JSON.stringify(b)})'>✏️</button></td>` : '<td></td>'}
+    </tr>`).join('');
+  }
+  function editBank(b) {
+    _editBank = b;
+    document.getElementById('bank-modal-title').textContent = 'แก้ไขบัญชีธนาคาร';
+    document.getElementById('bank-row-index').value = b.rowIndex;
+    document.getElementById('b-bank').value        = b['ธนาคาร']||'';
+    document.getElementById('b-branch').value      = b['สาขา']||'';
+    document.getElementById('b-accountno').value   = b['เลขที่บัญชี']||'';
+    document.getElementById('b-accounttype').value = b['ประเภทบัญชี']||'ออมทรัพย์';
+    document.getElementById('b-name').value        = b['ชื่อบัญชี']||'';
+    document.getElementById('b-category').value    = b['หมวดเงิน']||'';
+    document.getElementById('b-opening').value     = b['ยอดยกมา (บาท)']||0;
+    document.getElementById('b-active').value      = b['สถานะ']==='ใช้งาน'?'true':'false';
+    openModal('bank-modal');
+  }
+  async function saveBankAccount() {
+    const data = {
+      rowIndex: document.getElementById('bank-row-index').value || undefined,
+      bank: document.getElementById('b-bank').value,
+      branch: document.getElementById('b-branch').value,
+      accountNo: document.getElementById('b-accountno').value,
+      accountType: document.getElementById('b-accounttype').value,
+      name: document.getElementById('b-name').value,
+      category: document.getElementById('b-category').value,
+      openingBalance: document.getElementById('b-opening').value,
+      active: document.getElementById('b-active').value === 'true',
+    };
+    if (!data.bank || !data.accountNo || !data.name || !data.category) { showToast('กรอกข้อมูลให้ครบ','warning'); return; }
+    const res = data.rowIndex ? await API.updateBankAccount(data) : await API.addBankAccount(data);
+    if (res.success) { showToast('บันทึกสำเร็จ','success'); closeModal('bank-modal'); loadBanks(); _editBank = null; }
+    else showToast(res.error||'เกิดข้อผิดพลาด','error');
+  }
+
+// ---------- page: vendors ----------
+let _allVendors = [];
+  
+  async function loadVendors() {
+    const res = await API.getVendors();
+    _allVendors = res.vendors || [];
+    renderVendors(_allVendors);
+  }
+  function filterVendors() {
+    const q = document.getElementById('v-search').value.toLowerCase();
+    renderVendors(_allVendors.filter(v => (v['ชื่อผู้รับเงิน/ผู้ขาย']||'').toLowerCase().includes(q)));
+  }
+  function renderVendors(list) {
+    const isAdmin = getCurrentUser()?.role === 'admin';
+    document.getElementById('vendor-tbody').innerHTML = list.map(v => `<tr>
+      <td><code style="font-size:.78rem">${v['รหัส']||''}</code></td>
+      <td><strong>${v['ชื่อผู้รับเงิน/ผู้ขาย']||''}</strong></td>
+      <td style="font-size:.8rem">${v['เลขประจำตัว/ภาษี']||'—'}</td>
+      <td>${v['โทรศัพท์']||'—'}</td>
+      <td style="font-size:.8rem">${v['บัญชีธนาคาร']||'—'}</td>
+      <td style="font-size:.8rem;color:var(--text-muted)">${v['หมายเหตุ']||''}</td>
+      ${isAdmin ? '<td><button class="btn btn-sm btn-secondary" disabled>✏️</button></td>' : '<td></td>'}
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>';
+  }
+  async function saveVendor() {
+    const data = { name: document.getElementById('v-name').value.trim(), taxId: document.getElementById('v-taxid').value, address: document.getElementById('v-address').value, phone: document.getElementById('v-phone').value, bankAccount: document.getElementById('v-bankaccount').value, note: document.getElementById('v-note').value };
+    if (!data.name) { showToast('กรอกชื่อก่อน','warning'); return; }
+    const res = await API.addVendor(data);
+    if (res.success) { showToast('เพิ่มสำเร็จ','success'); closeModal('vendor-modal'); loadVendors(); ['v-name','v-taxid','v-address','v-phone','v-bankaccount','v-note'].forEach(id => document.getElementById(id).value = ''); }
+    else showToast(res.error||'เกิดข้อผิดพลาด','error');
+  }
+
+// ---------- page: reports ----------
+let _currentTab = 'daily';
+let _tabData = {};
+
+
+
+function switchTab(tab) {
+  _currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab)?.classList.add('active');
+  document.getElementById('panel-' + tab)?.classList.add('active');
+  
+  if (!_tabData[tab]) loadTabData(tab);
+}
+
+async function loadTabData(tab) {
+  if (tab === 'daily')   await loadDailyReport();
+  if (tab === 'monthly') await loadMonthlyReport();
+  if (tab === 'recon')   await loadReconReport();
+}
+
+async function loadDailyReport() {
+  document.getElementById('daily-tbody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:16px">กำลังโหลด...</td></tr>';
+  try {
+    const res = await API.getDailyReport();
+    _tabData['daily'] = res.rows || [];
+    renderDailyTable(res.rows || []);
+    document.getElementById('daily-generated').textContent = 'ณ ' + formatThaiDateTime(new Date().toISOString());
+  } catch(e) { showToast('โหลดรายงานไม่สำเร็จ','error'); }
+}
+
+function renderDailyTable(rows) {
+  const tbody = document.getElementById('daily-tbody');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>'; return; }
+  const headers = Object.keys(rows[0]);
+  tbody.innerHTML = rows.map((r,i) => {
+    const vals = headers.map(h => {
+      const v = r[h];
+      if (typeof v === 'number') return `<td style="text-align:right">${formatMoney(v)}</td>`;
+      if (h.toLowerCase().includes('วัน') || h.toLowerCase().includes('date')) return `<td>${formatThaiDate(v)}</td>`;
+      return `<td>${v||''}</td>`;
+    }).join('');
+    const isTotal = Object.values(r)[0]?.toString().includes('รวม') || i === rows.length - 1;
+    return `<tr ${isTotal ? 'style="font-weight:700;background:#f7faff"' : ''}>${vals}</tr>`;
+  }).join('');
+}
+
+async function loadMonthlyReport() {
+  document.getElementById('monthly-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:16px">กำลังโหลด...</td></tr>';
+  try {
+    const res = await API.getMonthlyReport();
+    _tabData['monthly'] = res.rows || [];
+    const tbody = document.getElementById('monthly-tbody');
+    if (!res.rows?.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>'; return; }
+    tbody.innerHTML = res.rows.map(r => {
+      const headers = Object.keys(r);
+      return '<tr>' + headers.map(h => {
+        const v = r[h];
+        if (typeof v === 'number') return `<td style="text-align:right">${formatMoney(v)}</td>`;
+        return `<td>${v||''}</td>`;
+      }).join('') + '</tr>';
+    }).join('');
+  } catch(e) { showToast('โหลดรายงานไม่สำเร็จ','error'); }
+}
+
+async function loadReconReport() {
+  document.getElementById('recon-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:16px">กำลังโหลด...</td></tr>';
+  try {
+    const res = await API.getBankRecon();
+    _tabData['recon'] = res.rows || [];
+    const tbody = document.getElementById('recon-tbody');
+    let allOk = true;
+    if (!res.rows?.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>'; return; }
+    tbody.innerHTML = res.rows.map(r => {
+      const headers = Object.keys(r);
+      const statusKey = headers.find(h => h.includes('สถานะ') || h.includes('status'));
+      const status = statusKey ? r[statusKey] : '—';
+      const isOk   = status === 'ตรงกัน';
+      if (!isOk) allOk = false;
+      return '<tr>' + headers.map(h => {
+        const v = r[h];
+        if (h === statusKey) {
+          const cls = isOk ? 'status-ok' : 'status-fail';
+          return `<td class="${cls}">${isOk ? '✅' : '❌'} ${v}</td>`;
+        }
+        if (typeof v === 'number') return `<td style="text-align:right">${formatMoney(v)}</td>`;
+        return `<td>${v||''}</td>`;
+      }).join('') + '</tr>';
+    }).join('');
+    // Summary
+    const summary = document.getElementById('recon-summary');
+    if (summary) {
+      summary.innerHTML = allOk
+        ? '<div class="alert-item alert-ok"><span class="alert-icon">✅</span><span class="alert-msg">กระทบยอดธนาคารทุกบัญชีตรงกัน</span></div>'
+        : '<div class="alert-item alert-error"><span class="alert-icon">❌</span><span class="alert-msg">พบความไม่ตรงของยอดธนาคาร กรุณาตรวจสอบ</span></div>';
+    }
+  } catch(e) { showToast('โหลดรายงานไม่สำเร็จ','error'); }
+}
+
+function exportCurrentTab() {
+  const data = _tabData[_currentTab];
+  if (!data || !data.length) { showToast('ไม่มีข้อมูลสำหรับ Export','warning'); return; }
+  const names = { daily:'รายงานเงินคงเหลือประจำวัน', monthly:'รายงานสรุปรายเดือน', recon:'กระทบยอดธนาคาร' };
+  exportCSV(data, `${names[_currentTab]}_${todayISO()}.csv`);
+}
+
+// ---------- page: register-report ----------
+let _currentRegTab = 'นอกงบ';
+let _regData = {};
+const regTitles = { 'นอกงบ':'ทะเบียนเงินนอกงบประมาณ', 'แผ่นดิน':'ทะเบียนเงินรายได้แผ่นดิน', 'งบ':'ทะเบียนเงินงบประมาณ' };
+
+
+
+function switchRegTab(type) {
+  _currentRegTab = type;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + type)?.classList.add('active');
+  document.getElementById('reg-title').textContent = regTitles[type] || type;
+  if (!_regData[type]) loadRegisterData(type);
+  else renderRegister(_regData[type]);
+}
+
+async function loadRegisterData(type) {
+  document.getElementById('reg-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:16px">กำลังโหลด...</td></tr>';
+  try {
+    const res = await API.getRegisterReport(type);
+    _regData[type] = res.rows || [];
+    renderRegister(_regData[type]);
+  } catch(e) { showToast('โหลดไม่สำเร็จ','error'); }
+}
+
+function renderRegister(rows) {
+  const tbody = document.getElementById('reg-tbody');
+  const countEl = document.getElementById('reg-count');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>';
+    if (countEl) countEl.textContent = '0 รายการ';
+    return;
+  }
+  if (countEl) countEl.textContent = rows.length.toLocaleString() + ' รายการ';
+
+  const headers = Object.keys(rows[0]);
+  // สร้าง thead จาก headers จริง
+  document.getElementById('reg-thead').innerHTML = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+
+  let runBalance = 0;
+  tbody.innerHTML = rows.map((r, i) => {
+    const isTotal = Object.values(r).some(v => String(v).includes('รวม') || String(v).includes('ยอด'));
+    return '<tr' + (isTotal ? ' style="font-weight:700;background:#f7faff"' : '') + '>' +
+      headers.map(h => {
+        const v = r[h];
+        if (typeof v === 'number') return `<td style="text-align:right">${formatMoney(v)}</td>`;
+        if ((h+'').toLowerCase().includes('วัน') || (h+'').toLowerCase().includes('date')) return `<td>${formatThaiDate(v)}</td>`;
+        if ((h+'').includes('ที่') && i === 0) return `<td>${i+1}</td>`;
+        return `<td>${v !== null && v !== undefined ? v : ''}</td>`;
+      }).join('') + '</tr>';
+  }).join('');
+}
+
+function exportReg() {
+  const data = _regData[_currentRegTab];
+  if (!data?.length) { showToast('ไม่มีข้อมูล','warning'); return; }
+  exportCSV(data, `${regTitles[_currentRegTab]}_${todayISO()}.csv`);
+}
+
+// ---------- page: bank-recon ----------
+let _reconData = [];
+const isAdmin = () => getCurrentUser()?.role === 'admin';
+
+
+
+async function loadRecon() {
+  document.getElementById('recon-container').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">กำลังโหลด...</div>';
+  try {
+    const [reconRes, bankRes] = await Promise.all([API.getBankRecon(), API.getBankAccounts()]);
+
+    // สร้าง map: accountId → system balance จาก bank accounts
+    const bankMap = {};
+    (bankRes.accounts || []).forEach(b => {
+      bankMap[b['รหัสบัญชี'] || b.id] = b;
     });
-  </script>
+
+    _reconData = reconRes.rows || [];
+    renderReconCards(_reconData, bankMap);
+    updateReconSummary(_reconData);
+  } catch(e) {
+    showToast('โหลดไม่สำเร็จ: ' + e.message, 'error');
+  }
+}
+
+function updateReconSummary(rows) {
+  const total = rows.length;
+  const ok    = rows.filter(r => String(r['สถานะ']||'').trim() === 'ตรงกัน').length;
+  const fail  = total - ok;
+  document.getElementById('summary-total').textContent = total + ' บัญชี';
+  document.getElementById('summary-ok').textContent    = ok + ' บัญชี';
+  document.getElementById('summary-fail').textContent  = fail + ' บัญชี';
+}
+
+function renderReconCards(rows, bankMap) {
+  const container = document.getElementById('recon-container');
+  if (!rows.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">ไม่มีข้อมูลบัญชีธนาคาร</div>';
+    return;
+  }
+
+  container.innerHTML = rows.map(r => {
+    const id       = String(r['รหัสบัญชี'] || '').trim();
+    const name     = String(r['ชื่อบัญชี'] || '').trim();
+    const sysBal   = Number(r['ยอดตามสมุดบัญชี'] || r['ยอดในระบบ'] || 0);
+    const stmtBal  = Number(r['ยอดตาม Statement'] || 0);
+    const inTrans  = Number(r['เงินฝากระหว่างทาง'] || 0);
+    const outChq   = Number(r['เช็คค้างจ่าย'] || 0);
+    const adjusted = stmtBal + inTrans - outChq;
+    const diff     = sysBal - adjusted;
+    const status   = String(r['สถานะ'] || 'ยังไม่กระทบ').trim();
+    const isOk     = status === 'ตรงกัน' || (stmtBal !== 0 && Math.abs(diff) < 0.01);
+    const isWait   = !stmtBal;
+
+    const statusCls  = isOk ? 'recon-status-ok' : isWait ? 'recon-status-wait' : 'recon-status-fail';
+    const statusText = isOk ? '✅ ตรงกัน' : isWait ? '⏳ ยังไม่กรอก Statement' : '❌ ไม่ตรง';
+    const diffCls    = Math.abs(diff) < 0.01 ? 'recon-diff-ok' : 'recon-diff-fail';
+
+    return `<div class="recon-card" id="card-${id}">
+      <div class="recon-card-header">
+        <div>
+          <div class="recon-bank-name">${name || id}</div>
+          <div style="font-size:.78rem;color:var(--text-muted)">รหัส: ${id}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="recon-status-badge ${statusCls}">${statusText}</span>
+          ${isAdmin() ? `<button class="btn btn-sm btn-primary" onclick="openStatementModal('${id}','${name}',${sysBal},${stmtBal},${inTrans},${outChq})">✏️ กรอก Statement</button>` : ''}
+        </div>
+      </div>
+      <div class="recon-grid">
+        <div class="recon-item">
+          <label>ยอดตามสมุดบัญชี (ระบบ)</label>
+          <div class="value">${formatMoney(sysBal)}</div>
+        </div>
+        <div class="recon-item">
+          <label>ยอดตาม Statement ธนาคาร</label>
+          <div class="value ${stmtBal ? '' : 'negative'}">${stmtBal ? formatMoney(stmtBal) : '— ยังไม่กรอก'}</div>
+        </div>
+        <div class="recon-item">
+          <label>เงินฝากระหว่างทาง</label>
+          <div class="value">${formatMoney(inTrans)}</div>
+        </div>
+        <div class="recon-item">
+          <label>เช็คค้างจ่าย</label>
+          <div class="value">${formatMoney(outChq)}</div>
+        </div>
+        <div class="recon-item">
+          <label>ยอดปรับปรุง</label>
+          <div class="value">${stmtBal ? formatMoney(adjusted) : '—'}</div>
+        </div>
+        <div class="recon-item">
+          <label>ผลต่าง (ต้องเป็น 0)</label>
+          <div class="value ${Math.abs(diff) < 0.01 ? 'positive' : 'negative'}">${stmtBal ? formatMoney(diff, true) : '—'}</div>
+        </div>
+      </div>
+      ${stmtBal ? `<div class="recon-diff-box ${diffCls}">${Math.abs(diff) < 0.01 ? '✅ ยอดตรงกัน' : `❌ ผลต่าง ${formatMoney(diff, true)}`}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function openStatementModal(id, name, sysBal, stmtBal, inTrans, outChq) {
+  document.getElementById('stmt-account-id').value     = id;
+  document.getElementById('stmt-bank-info').textContent = `บัญชี: ${name} (${id}) | ยอดในระบบ: ${formatMoney(sysBal)}`;
+  document.getElementById('stmt-balance').value         = stmtBal || '';
+  document.getElementById('stmt-in-transit').value      = inTrans  || 0;
+  document.getElementById('stmt-outstanding').value     = outChq   || 0;
+  openModal('stmt-modal');
+  document.getElementById('stmt-balance').focus();
+}
+
+async function saveStatement() {
+  const accountId = document.getElementById('stmt-account-id').value;
+  const stmtBal   = Number(document.getElementById('stmt-balance').value);
+  const inTrans   = Number(document.getElementById('stmt-in-transit').value)  || 0;
+  const outChq    = Number(document.getElementById('stmt-outstanding').value) || 0;
+
+  if (!stmtBal && stmtBal !== 0) { showToast('กรอกยอด Statement ก่อน','warning'); return; }
+
+  const btn = document.querySelector('#stmt-modal .btn-primary');
+  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
+  try {
+    const res = await apiCall('updateBankStatement', {
+      accountId,
+      statementBalance:  stmtBal,
+      inTransit:         inTrans,
+      outstandingChecks: outChq,
+    });
+    if (res.success) {
+      showToast('บันทึก Statement สำเร็จ','success');
+      closeModal('stmt-modal');
+      await loadRecon();
+    } else {
+      showToast(res.error || 'เกิดข้อผิดพลาด','error');
+    }
+  } catch(e) {
+    showToast(e.message,'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '💾 บันทึก Statement';
+  }
+}
+
+// ---------- page: users ----------
+const roleLabel = { admin:'ผู้ดูแลระบบ', director:'ผู้อำนวยการ', viewer:'ผู้ชม' };
+  
+  async function loadUsers() {
+    const res = await API.getUsers();
+    const tbody = document.getElementById('users-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = (res.users || []).map(u => `<tr>
+      <td><strong>${u.displayName || '—'}</strong></td>
+      <td>${u.email}</td>
+      <td><span class="badge badge-info">${roleLabel[u.role] || u.role}</span></td>
+      <td><span class="badge ${u.active ? 'badge-success' : 'badge-danger'}">${u.active ? 'ใช้งาน' : 'ระงับ'}</span></td>
+      <td style="font-size:.8rem">${u.lastLogin ? formatThaiDateTime(u.lastLogin) : '—'}</td>
+      <td>
+        <button class="btn btn-sm btn-secondary" onclick="toggleActive('${u.email}',${!u.active})">${u.active ? 'ระงับ' : 'เปิดใช้'}</button>
+        <select class="btn btn-sm btn-secondary" onchange="changeRole('${u.email}',this.value)" style="cursor:pointer">
+          <option value="">เปลี่ยน Role</option>
+          <option value="viewer">Viewer</option><option value="admin">Admin</option><option value="director">Director</option>
+        </select>
+      </td>
+    </tr>`).join('');
+  }
+  async function addUser() {
+    const email = document.getElementById('new-email').value.trim();
+    const name  = document.getElementById('new-name').value.trim();
+    const role  = document.getElementById('new-role').value;
+    if (!email) { showToast('กรอก Email ก่อน','warning'); return; }
+    const res = await API.addUser({ email, displayName: name, role });
+    if (res.success) { showToast('เพิ่มผู้ใช้สำเร็จ','success'); closeModal('add-user-modal'); loadUsers(); }
+    else showToast(res.error || 'เกิดข้อผิดพลาด','error');
+  }
+  async function toggleActive(email, active) {
+    const res = await API.updateUser({ email, active });
+    if (res.success) { showToast('อัปเดตสถานะสำเร็จ','success'); loadUsers(); }
+    else showToast(res.error,'error');
+  }
+  async function changeRole(email, role) {
+    if (!role) return;
+    const ok = await confirmDialog('เปลี่ยน Role','ยืนยันการเปลี่ยน Role ของ ' + email + ' เป็น ' + role + '?');
+    if (!ok) return;
+    const res = await API.updateUser({ email, role });
+    if (res.success) { showToast('เปลี่ยน Role สำเร็จ','success'); loadUsers(); }
+    else showToast(res.error,'error');
+  }
+
+// ---------- page: money-types ----------
+let _isEditing = false;
+const catColors = { 'เงินรายได้แผ่นดิน':'badge-info', 'เงินงบประมาณ':'badge-warning', 'เงินนอกงบประมาณ':'badge-success' };
+
+
+
+async function loadTypes() {
+  const res = await API.getMoneyTypes();
+  const tbody = document.getElementById('type-tbody');
+  const isAdm = getCurrentUser()?.role === 'admin';
+  const types = res.moneyTypes || [];
+  if (!types.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>'; return; }
+  tbody.innerHTML = types.map((t, i) => `<tr>
+    <td style="color:var(--text-muted)">${i+1}</td>
+    <td><strong>${t.type}</strong></td>
+    <td><span class="badge ${catColors[t.category]||'badge-muted'}">${t.category}</span></td>
+    <td style="font-size:.82rem;color:var(--text-muted)">${t.description||'—'}</td>
+    ${isAdm ? `<td><button class="btn btn-sm btn-secondary" onclick="editType('${t.type}','${t.category}','${t.description||''}')">✏️ แก้ไข</button></td>` : '<td></td>'}
+  </tr>`).join('');
+}
+
+function editType(type, category, desc) {
+  _isEditing = true;
+  document.getElementById('type-modal-title').textContent = 'แก้ไขประเภทเงิน';
+  document.getElementById('edit-type-original').value = type;
+  document.getElementById('new-type').value     = type;
+  document.getElementById('new-type').disabled  = true; // ไม่ให้เปลี่ยนชื่อ (เป็น key)
+  document.getElementById('new-category').value = category;
+  document.getElementById('new-desc').value     = desc;
+  openModal('add-type-modal');
+}
+
+async function saveMoneyType() {
+  const type     = document.getElementById('new-type').value.trim();
+  const category = document.getElementById('new-category').value;
+  const desc     = document.getElementById('new-desc').value.trim();
+  if (!type || !category) { showToast('กรอกข้อมูลให้ครบ','warning'); return; }
+
+  let res;
+  if (_isEditing) {
+    res = await apiCall('updateMoneyType', { type, category, description: desc });
+  } else {
+    res = await apiCall('addMoneyType', { type, category, description: desc });
+  }
+
+  if (res.success) {
+    showToast(_isEditing ? 'แก้ไขสำเร็จ' : 'เพิ่มสำเร็จ','success');
+    closeModal('add-type-modal');
+    document.getElementById('new-type').disabled = false;
+    document.getElementById('new-type').value = '';
+    document.getElementById('new-category').value = '';
+    document.getElementById('new-desc').value = '';
+    _isEditing = false;
+    loadTypes();
+  } else {
+    showToast(res.error || 'เกิดข้อผิดพลาด','error');
+  }
+}
+
+// ---------- page: settings ----------
+async function saveSettings() {
+    const fields = ['schoolName','schoolAddr','startDate','endDate','fiscalYear','alertThreshold','director','officer','openingCash','committee1','committee2','committee3'];
+    const body = {};
+    fields.forEach(f => { const el = document.getElementById('cfg-' + f); if (el) body[f] = el.value; });
+    showLoading(true,'บันทึก...');
+    try {
+      const res = await API.updateConfig(body);
+      if (res.success) showToast('บันทึกตั้งค่าสำเร็จ','success');
+      else showToast(res.error || 'เกิดข้อผิดพลาด','error');
+    } finally { showLoading(false); }
+  }
+
+// ---------- page: audit-log ----------
+let _allLogs = [];
+const actionColors = {
+  ADD_TRANSACTION:    'badge-success',
+  UPDATE_TRANSACTION: 'badge-warning',
+  DELETE_TRANSACTION: 'badge-danger',
+  CLOSE_FISCAL_YEAR:  'badge-danger',
+  OPEN_FISCAL_YEAR:   'badge-success',
+  ADD_USER:           'badge-info',
+  UPDATE_USER:        'badge-warning',
+  UPDATE_CONFIG:      'badge-warning',
+  ADD_BANK_ACCOUNT:   'badge-info',
+  ADD_VENDOR:         'badge-info',
+  SYSTEM_SETUP:       'badge-muted',
+};
+
+
+
+async function loadAuditLog() {
+  document.getElementById('audit-tbody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px">กำลังโหลด...</td></tr>';
+  try {
+    const res = await API.getAuditLog();
+    _allLogs = res.logs || [];
+    renderLogs(_allLogs);
+  } catch(e) { showToast('โหลดไม่สำเร็จ','error'); }
+}
+
+function filterLogs() {
+  const q = document.getElementById('audit-search').value.toLowerCase();
+  renderLogs(_allLogs.filter(l =>
+    (l.action||'').toLowerCase().includes(q) ||
+    (l.userEmail||'').toLowerCase().includes(q) ||
+    (l.detail||'').toLowerCase().includes(q)
+  ));
+}
+
+function renderLogs(logs) {
+  const tbody = document.getElementById('audit-tbody');
+  if (!logs.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่พบรายการ</td></tr>'; return; }
+  tbody.innerHTML = logs.map(l => {
+    const cls = actionColors[l.action] || 'badge-muted';
+    let detail = l.detail || '';
+    try { const obj = JSON.parse(detail); detail = Object.entries(obj).map(([k,v]) => `<span style="color:var(--text-muted)">${k}:</span> ${v}`).join(' · '); } catch(e) {}
+    return `<tr>
+      <td style="white-space:nowrap;font-size:.78rem">${formatThaiDateTime(l.timestamp)}</td>
+      <td><span class="badge ${cls}" style="font-size:.7rem">${l.action||''}</span></td>
+      <td style="font-size:.8rem">${l.userEmail||'—'}</td>
+      <td style="font-size:.78rem;color:var(--text-muted);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.detail||''}">${detail}</td>
+      <td style="font-size:.8rem">${l.rowAffected||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function exportAudit() {
+  if (!_allLogs.length) { showToast('ไม่มีข้อมูล','warning'); return; }
+  exportCSV(_allLogs, `audit-log_${todayISO()}.csv`);
+}
+
+
+// ============================================================
+// Router (hash) — แทนการเปลี่ยนหน้า .html เดิม
+//   #/dashboard   #/transactions?status=รอตรวจ   #/reports?tab=recon
+// ============================================================
+const DEFAULT_AVATAR = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCI+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iNDAiIGZpbGw9IiNjOWEyMjciLz4KICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjMwIiByPSIxNCIgZmlsbD0iI2ZmZiIvPgogIDxlbGxpcHNlIGN4PSI0MCIgY3k9IjY4IiByeD0iMjIiIHJ5PSIxOCIgZmlsbD0iI2ZmZiIvPgo8L3N2Zz4K';
+let ROUTE = { page: 'dashboard', params: {} };
+let _routeSeq = 0;
+
+const PAGES = {
+  'dashboard': { roles: null, init: async function() {
+  loadDashboard();
+    loadSidebarStats();
+  } },
+  'transactions': { roles: null, init: async function() {
+  renderSkeleton('tx-tbody',8,10);
+    const st = ROUTE.params.status;
+    const stEl = document.getElementById('filter-status');
+    if (stEl) stEl.value = st || '';
+    await loadDropdowns();
+    if (stEl && st) stEl.value = st;
+    loadTransactions();
+    loadSidebarStats();
+  } },
+  'bank-accounts': { roles: null, init: async function() {
+  loadBanks();
+  } },
+  'vendors': { roles: null, init: async function() {
+  loadVendors();
+  } },
+  'reports': { roles: null, init: async function() {
+  _tabData = {};
+  const tab = ROUTE.params.tab;
+  loadSidebarStats();
+  if (tab === 'recon') switchTab('recon');
+  else if (tab === 'monthly') switchTab('monthly');
+  else switchTab('daily');
+  } },
+  'register-report': { roles: null, init: async function() {
+  _regData = {};
+  loadRegisterData('นอกงบ');
+  } },
+  'bank-recon': { roles: null, init: async function() {
+  loadRecon();
+  } },
+  'fiscal-year': { roles: ['admin','director'], init: async function() {
+  loadFiscalYearPage();
+    loadSidebarStats();
+  } },
+  'users': { roles: ['admin'], init: async function() {
+  loadUsers();
+  } },
+  'money-types': { roles: null, init: async function() {
+  loadTypes();
+  } },
+  'settings': { roles: ['admin'], init: async function() {
+  const cfg = await API.getConfig();
+    const fields = ['schoolName','schoolAddr','startDate','endDate','fiscalYear','alertThreshold','director','officer','openingCash','committee1','committee2','committee3'];
+    fields.forEach(f => { const el = document.getElementById('cfg-' + f); if (el && cfg[f] !== undefined) el.value = cfg[f]; });
+  } },
+  'audit-log': { roles: ['admin'], init: async function() {
+  loadAuditLog();
+  } }
+};
+
+function parseHash() {
+  const h = location.hash.replace(/^#\/?/, '');
+  const q = h.indexOf('?');
+  const page = decodeURIComponent(q < 0 ? h : h.slice(0, q)) || 'dashboard';
+  const params = {};
+  new URLSearchParams(q < 0 ? '' : h.slice(q + 1)).forEach((v, k) => { params[k] = v; });
+  return { page, params };
+}
+
+function navigate(target) {           // 'transactions?status=x' หรือ 'dashboard'
+  const next = '#/' + target;
+  if (location.hash === next || decodeURIComponent(location.hash) === decodeURIComponent(next)) route();
+  else location.hash = next;
+}
+
+function hardReload(error) {          // เริ่มแอปใหม่แบบสะอาด (ล้างสถานะในหน้าจอทั้งหมด)
+  history.replaceState(null, '', location.pathname + (error ? '?error=' + error : ''));
+  location.reload();
+}
+function forceRelogin(reason) {
+  localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); localStorage.removeItem(EXPIRY_KEY);
+  hardReload(reason);
+}
+
+function showLogin() {
+  document.getElementById('view-login').style.display = 'flex';
+  document.getElementById('view-app').style.display = 'none';
+  document.body.classList.remove('in-app');
+}
+function showApp() {
+  document.getElementById('view-login').style.display = 'none';
+  document.getElementById('view-app').style.display = '';
+  document.body.classList.add('in-app');
+  renderUserInfo();
+}
+
+async function route() {
+  const seq = ++_routeSeq;
+  if (!isLoggedIn()) { forceRelogin('session_expired'); return; }
+  ROUTE = parseHash();
+  let def = PAGES[ROUTE.page];
+  if (!def) { history.replaceState(null, '', '#/dashboard'); ROUTE = parseHash(); def = PAGES.dashboard; }
+
+  const user = getCurrentUser();
+  if (def.roles && (!user || !def.roles.includes(user.role))) {
+    showToast('คุณไม่มีสิทธิ์เข้าถึงหน้านี้', 'error');
+    history.replaceState(null, '', '#/dashboard'); ROUTE = parseHash(); def = PAGES.dashboard;
+  }
+
+  document.querySelectorAll('.page-view').forEach(el => el.classList.toggle('active', el.dataset.page === ROUTE.page));
+  document.querySelectorAll('.sidebar-nav a.nav-item').forEach(a => a.classList.toggle('active', a.dataset.page === ROUTE.page));
+  document.getElementById('sidebar').classList.remove('open');
+  const title = document.querySelector('#page-' + ROUTE.page + ' .top-bar-title');
+  document.title = (title ? title.textContent.trim() + ' — ' : '') + 'ระบบบัญชีการเงินโรงเรียน';
+  window.scrollTo(0, 0);
+
+  applyRoleVisibility();
+  try { await def.init(); }
+  catch (e) { if (seq === _routeSeq) { console.error(e); showToast('เกิดข้อผิดพลาด: ' + e.message, 'error'); } }
+  // sidebar ใช้ร่วมกันทุกหน้า: ถ้าหน้านี้ไม่ได้โหลดยอดเงินสดเอง ให้โหลดครั้งเดียว
+  if (!window._sidebarStatsRequested) loadSidebarStats();
+}
+
+window.addEventListener('hashchange', () => { if (document.body.classList.contains('in-app')) route(); });
+
+// ลิงก์เดิมแบบ "xxx.html?a=b#tab" (จาก backend / รายการแจ้งเตือน) -> เปลี่ยนเป็น hash route
+document.addEventListener('click', (e) => {
+  const a = e.target.closest && e.target.closest('a[href]');
+  if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || a.target === '_blank') return;
+  const href = a.getAttribute('href');
+  const m = href.match(/^([\w-]+)\.html(\?[^#]*)?(?:#(.*))?$/);
+  if (m && PAGES[m[1]]) {
+    e.preventDefault();
+    let qs = m[2] || '';
+    if (m[3]) qs += (qs ? '&' : '?') + 'tab=' + m[3];
+    navigate(m[1] + qs);
+  } else if (href.startsWith('#/') && href === location.hash) {
+    e.preventDefault(); route();
+  }
+});
+
+// ===== Boot =====
+function waitForGoogle(cb, tries = 0) {
+  if (window.google && google.accounts && google.accounts.id) return cb();
+  if (tries > 100) { showLoginError('โหลด Google Sign-In ไม่สำเร็จ กรุณารีเฟรชหน้า'); return; }
+  setTimeout(() => waitForGoogle(cb, tries + 1), 100);
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(location.search);
+  if (params.get('error') === 'session_expired') showLoginError('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
+  if (params.get('error') === 'unauthorized')    showLoginError('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+
+  await loadSystemConfig();
+
+  if (isLoggedIn()) {
+    showApp();
+    if (!location.hash) history.replaceState(null, '', '#/dashboard');
+    route();
+    return;
+  }
+
+  showLogin();
+  if (window.AppConfig.gasUrl) {
+    try {
+      const res = await fetch(window.AppConfig.gasUrl + '?action=getConfig&token=public');
+      const cfg = await res.json();
+      if (cfg.schoolName) document.getElementById('school-name-display').textContent = cfg.schoolName;
+    } catch(e) {}
+  }
+  waitForGoogle(() => { initGoogleAuth(); renderGoogleButton('google-btn-wrapper'); });
+});
+
+</script>
 </body>
 </html>
