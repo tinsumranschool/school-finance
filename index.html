@@ -670,6 +670,104 @@ code {
   font-family: 'Courier New', monospace;
 }
 
+/* ===== Fiscal Year Page ===== */
+.fy-hero { text-align:center; padding: 32px 24px 24px; }
+.fy-hero h1 { font-size:1.4rem; color:var(--navy); margin-bottom:8px; }
+.fy-hero p  { color:var(--text-muted); font-size:.9rem; }
+.fy-step {
+  display: flex; gap: 16px; align-items: flex-start;
+  background: var(--surface); border-radius: var(--radius);
+  padding: 20px; box-shadow: var(--shadow); margin-bottom: 14px;
+}
+.fy-step-num {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; font-weight: 700; flex-shrink: 0;
+  transition: all var(--transition);
+}
+.fy-step-num.pending  { background: #fff3cd; color: var(--warning); border: 2px solid var(--warning); }
+.fy-step-num.done     { background: #d4edda; color: var(--success); border: 2px solid var(--success); }
+.fy-step-num.locked   { background: #e9ecef; color: var(--text-muted); border: 2px solid var(--border); }
+.fy-step-num.waiting  { background: #cce5ff; color: var(--info); border: 2px solid var(--info); }
+.fy-step-info h3 { font-size:.95rem; color:var(--navy); margin-bottom:4px; }
+.fy-step-info p  { font-size:.82rem; color:var(--text-muted); }
+.step-status { font-size:.82rem; margin-top:6px; color:var(--text-muted); }
+.checklist-grid { display: grid; gap: 8px; }
+.all-pass-banner {
+  background: #d4edda; border: 1px solid #c3e6cb;
+  color: #155724; border-radius: 8px; padding: 10px 14px;
+  font-weight: 600; font-size: .88rem; display: none; margin-bottom: 10px;
+}
+.block-banner {
+  background: #fff3cd; border: 1px solid #ffc107;
+  color: #856404; border-radius: 8px; padding: 12px 16px;
+  font-weight: 600; font-size: .88rem; margin-bottom: 14px;
+  display: none; align-items: center; gap: 8px;
+}
+.archive-success {
+  background: #d4edda; border: 1px solid #c3e6cb;
+  color: #155724; border-radius: var(--radius); padding: 32px 24px;
+  text-align: center; margin-bottom: 20px; display: none;
+}
+.director-request {
+  background: #cce5ff; border: 1px solid #b8daff;
+  color: #004085; border-radius: var(--radius); padding: 20px;
+  margin-bottom: 14px; display: none;
+}
+.director-pending { background: #d1ecf1; border-radius: 8px; padding: 12px 14px; display: none; margin-bottom: 10px; }
+.lock-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 10000; display: none; align-items: center; justify-content: center;
+}
+.lock-overlay-box {
+  background: #fff; border-radius: var(--radius); padding: 32px 40px;
+  text-align: center; min-width: 280px; box-shadow: var(--shadow-lg);
+}
+.lock-overlay-icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+/* ===== Recon Cards ===== */
+.recon-card {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden;
+  border-left: 4px solid var(--border);
+  transition: box-shadow var(--transition);
+}
+.recon-card:hover { box-shadow: var(--shadow-lg); }
+.recon-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid var(--border); background: #f7faff;
+}
+.recon-bank-name { font-weight: 700; font-size: .95rem; color: var(--navy); }
+.recon-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border);
+}
+@media (max-width:768px) { .recon-grid { grid-template-columns: 1fr 1fr; } }
+.recon-item { background: var(--surface); padding: 12px 16px; }
+.recon-item label { font-size: .72rem; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500; }
+.recon-item .value { font-size: .95rem; font-weight: 600; color: var(--navy); }
+.recon-item .value.negative { color: var(--danger); }
+.recon-item .value.positive { color: var(--success); }
+.recon-diff-box { padding: 10px 20px; font-weight: 600; font-size: .88rem; text-align: center; }
+.recon-diff-ok   { background: #d4edda; color: #155724; }
+.recon-diff-fail { background: #f8d7da; color: #721c24; }
+.recon-status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: .78rem; font-weight: 600; }
+.recon-status-ok   { background: #d4edda; color: #155724; }
+.recon-status-fail { background: #f8d7da; color: #721c24; }
+.recon-status-wait { background: #fff3cd; color: #856404; }
+
+/* ===== Bank Logo ===== */
+.bank-logo-circle {
+  width: 36px; height: 36px; border-radius: 50%;
+  object-fit: cover; flex-shrink: 0; border: 2px solid var(--border); background: #f0f4f8;
+}
+.bank-logo-fallback {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--navy); color: #fff; font-size: .62rem; font-weight: 700;
+  flex-shrink: 0; border: 2px solid var(--border); text-align: center;
+}
+.bank-with-logo { display: flex; align-items: center; gap: 8px; }
+
 /* ===== Empty state ===== */
 .empty-state {
   text-align: center; padding: 48px 24px; color: var(--text-muted);
@@ -846,7 +944,7 @@ body.in-app { background: var(--bg); }
         <div class="card">
           <div class="card-header">
             <div class="card-title">💹 เส้นทางการเงิน (Money Flow)</div>
-            <a href="transactions.html" style="font-size:0.78rem;color:var(--navy-light)">ดูรายละเอียด →</a>
+            <a href="#/transactions" style="font-size:0.78rem;color:var(--navy-light)">ดูรายละเอียด →</a>
           </div>
           <div class="card-body" style="padding-bottom:12px">
             <svg id="money-flow-svg" class="money-flow-svg" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -878,7 +976,7 @@ body.in-app { background: var(--bg); }
         <div class="card">
           <div class="card-header">
             <div class="card-title">🏦 สถานะกระทบยอดธนาคาร</div>
-            <a href="reports.html#recon" style="font-size:0.78rem;color:var(--navy-light)">ดูหมด →</a>
+            <a href="#/bank-recon" style="font-size:0.78rem;color:var(--navy-light)">ดูหมด →</a>
           </div>
           <div class="card-body" style="padding:0">
             <table>
@@ -1099,7 +1197,26 @@ body.in-app { background: var(--bg); }
     <input type="hidden" id="bank-row-index">
     <div class="form-grid">
       <div class="form-group"><label>ธนาคาร <span class="required">*</span></label>
-        <select id="b-bank"><option value="">เลือก...</option><option>กรุงเทพ</option><option>กสิกรไทย</option><option>ไทยพาณิชย์</option><option>กรุงไทย</option><option>ออมสิน</option></select>
+        <select id="b-bank" onchange="updateBankLogo()">
+          <option value="">เลือก...</option>
+          <option>ธนาคารกรุงไทย</option>
+          <option>ธนาคารออมสิน</option>
+          <option>ธนาคารธกส</option>
+          <option>ธนาคารเกียรตินาคินภัทร</option>
+          <option>ธนาคารบัวหลวง</option>
+          <option>ธนาคารกรุงเทพ</option>
+          <option>ธนาคารทหารไทย</option>
+          <option>ธนาคารไทยพาณิชย์</option>
+          <option>ธนาคารกสิกรไทย</option>
+          <option>ธนาคารธนชาต</option>
+          <option>ธนาคารกรุงศรี</option>
+        </select>
+      </div>
+      <div class="form-group" style="display:flex;align-items:flex-end;gap:10px">
+        <div id="bank-logo-preview" style="display:none;flex-direction:column;align-items:center;gap:4px">
+          <img id="bank-logo-img" src="" alt="" class="bank-logo-circle" style="width:52px;height:52px">
+          <span style="font-size:.7rem;color:var(--text-muted)" id="bank-logo-name"></span>
+        </div>
       </div>
       <div class="form-group"><label>สาขา</label><input type="text" id="b-branch"></div>
       <div class="form-group"><label>เลขที่บัญชี <span class="required">*</span></label><input type="text" id="b-accountno"></div>
@@ -1117,7 +1234,7 @@ body.in-app { background: var(--bg); }
       <div style="display:flex;align-items:center;gap:12px"><button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button><div class="top-bar-title">👥 ผู้รับเงินและผู้ขาย</div></div>
       <div class="top-bar-actions">
         <input type="text" id="v-search" placeholder="ค้นหาชื่อ..." style="padding:7px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:.85rem" oninput="filterVendors()">
-        <button class="btn btn-primary btn-sm" data-role="admin" onclick="openModal('vendor-modal')">+ เพิ่มรายการ</button>
+        <button class="btn btn-primary btn-sm" data-role="admin" onclick="openAddVendorModal()">+ เพิ่มรายการ</button>
       </div>
     </header>
     <div class="page-content">
@@ -1131,7 +1248,9 @@ body.in-app { background: var(--bg); }
   
 <div class="modal-overlay" id="vendor-modal" style="display:none" onclick="if(event.target===this)closeModal('vendor-modal')">
   <div class="modal-box">
-    <div class="modal-title">เพิ่มผู้รับเงิน/ผู้ขาย</div>
+    <div class="modal-title" id="vendor-modal-title">เพิ่มผู้รับเงิน/ผู้ขาย</div>
+    <input type="hidden" id="v-row-index">
+    <input type="hidden" id="v-vendor-id">
     <div class="form-grid">
       <div class="form-group"><label>ชื่อผู้รับเงิน/ผู้ขาย <span class="required">*</span></label><input type="text" id="v-name"></div>
       <div class="form-group"><label>เลขประจำตัว/ภาษี</label><input type="text" id="v-taxid"></div>
@@ -1353,7 +1472,7 @@ body.in-app { background: var(--bg); }
         <div style="margin-top:16px;display:flex;gap:12px;justify-content:center">
           <a id="archive-link" class="btn btn-secondary" target="_blank">📁 ดู Archive</a>
           <a id="new-sheet-link" class="btn btn-success" target="_blank">📊 ดู Sheet ปีใหม่</a>
-          <button class="btn btn-primary" onclick="location.href='dashboard.html'">ไปยัง Dashboard ปีใหม่</button>
+          <button class="btn btn-primary" onclick="navigate('dashboard')">ไปยัง Dashboard ปีใหม่</button>
         </div>
       </div>
 
@@ -1363,7 +1482,7 @@ body.in-app { background: var(--bg); }
       </div>
 
       <!-- Director pending request (แสดงสำหรับ Director) -->
-      <div class="director-request" id="director-request-box" data-role="director">
+      <div class="director-request" id="director-request-box" data-role="director" style="display:none">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
           <span style="font-size:2rem">📨</span>
           <div>
@@ -1402,7 +1521,7 @@ body.in-app { background: var(--bg); }
           <h3>ขั้นตอนที่ 2 — Admin ยืนยัน</h3>
           <p>Admin ยืนยันว่าข้อมูลครบถ้วนและพร้อมปิดงบ</p>
           <!-- Director pending: แสดงเมื่อ Admin กดแล้ว รอ Director -->
-          <div class="director-pending" id="admin-pending-msg">
+          <div class="director-pending" id="admin-pending-msg" style="display:none">
             <div style="font-weight:600;color:var(--warning)">⏳ รอการอนุมัติจากผู้อำนวยการ</div>
             <div style="font-size:.82rem;color:var(--text-muted);margin-top:4px">ผู้อำนวยการได้รับ Email แจ้งเตือนแล้ว กรุณารอการอนุมัติ</div>
           </div>
@@ -1432,7 +1551,7 @@ body.in-app { background: var(--bg); }
   
 
 <!-- Lock overlay ระหว่าง process -->
-<div class="lock-overlay" id="lock-overlay">
+<div class="lock-overlay" id="lock-overlay" style="display:none">
   <div class="lock-overlay-box">
     <div class="lock-overlay-icon">⏳</div>
     <div style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:8px">กำลังดำเนินการปิดงบ</div>
@@ -1625,8 +1744,11 @@ window.AppConfig = {
 };
 
 async function loadSystemConfig() {
+  // เพิ่ม timestamp เพื่อกัน cache และบังคับ sync กับ GAS ล่าสุด
   const cached = sessionStorage.getItem('system_config');
-  if (cached) {
+  const cacheAge = parseInt(sessionStorage.getItem('system_config_ts') || '0');
+  const CACHE_TTL = 5 * 60 * 1000; // 5 นาที
+  if (cached && (Date.now() - cacheAge) < CACHE_TTL) {
     try {
       const cfg = JSON.parse(cached);
       Object.assign(window.AppConfig, cfg, { loaded: true });
@@ -1634,14 +1756,34 @@ async function loadSystemConfig() {
     } catch(e) {}
   }
   try {
-    const res = await fetch(SYSTEM_CONFIG_URL, { cache: 'no-cache' });
+    // บังคับ no-cache เพื่อให้ได้ config ล่าสุดจาก GAS เสมอ
+    const res = await fetch(SYSTEM_CONFIG_URL + '&_t=' + Date.now(), {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
     if (!res.ok) throw new Error('config fetch failed: ' + res.status);
     const cfg = await res.json();
     Object.assign(window.AppConfig, cfg, { loaded: true });
     sessionStorage.setItem('system_config', JSON.stringify(cfg));
+    sessionStorage.setItem('system_config_ts', String(Date.now()));
     return window.AppConfig;
   } catch(err) {
     console.warn('loadSystemConfig fallback:', err.message);
+    // ถ้า fetch ล้มเหลว ใช้ GAS URL โดยตรงเพื่อ sync
+    if (!window.AppConfig.loaded) {
+      try {
+        const r2 = await fetch(window.AppConfig.gasUrl + '?action=getSystemConfig', { cache: 'no-store' });
+        if (r2.ok) {
+          const cfg2 = await r2.json();
+          if (cfg2.gasUrl) {
+            Object.assign(window.AppConfig, cfg2, { loaded: true });
+            sessionStorage.setItem('system_config', JSON.stringify(cfg2));
+            sessionStorage.setItem('system_config_ts', String(Date.now()));
+            return window.AppConfig;
+          }
+        }
+      } catch(e2) {}
+    }
     window.AppConfig.loaded = true;
     return window.AppConfig;
   }
@@ -1649,6 +1791,7 @@ async function loadSystemConfig() {
 
 function resetConfigCache() {
   sessionStorage.removeItem('system_config');
+  sessionStorage.removeItem('system_config_ts');
   window.AppConfig.loaded = false;
 }
 
@@ -2031,31 +2174,35 @@ const GET_ACTIONS = new Set([
 
 async function apiCall(action, data = {}) {
   if (!window.AppConfig.gasUrl) {
-    throw new Error('ระบบยังไม่โหลด config กรุณารีเฟรชหน้า');
+    // พยายาม reload config ก่อน
+    await loadSystemConfig();
+    if (!window.AppConfig.gasUrl) throw new Error('ระบบยังไม่โหลด config กรุณารีเฟรชหน้า');
   }
 
   const token  = getToken();
   const isGet  = GET_ACTIONS.has(action);
   const url    = window.AppConfig.gasUrl;
 
-  try {
+  const fetchOnce = async () => {
     let res;
     if (isGet) {
       const params = new URLSearchParams({ action, token, ...data });
-      res = await fetch(`${url}?${params}`, {
-        method: 'GET',
-        redirect: 'follow',
+      res = await fetch(`${url}?${params}&_t=${Date.now()}`, {
+        method: 'GET', redirect: 'follow',
+        headers: { 'Cache-Control': 'no-cache' },
       });
     } else {
       res = await fetch(url, {
-        method: 'POST',
-        redirect: 'follow',
+        method: 'POST', redirect: 'follow',
         body: JSON.stringify({ action, token, ...data }),
       });
     }
-
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
+    return res.json();
+  };
+
+  try {
+    const json = await fetchOnce();
 
     if (json.error === 'Unauthorized — token ไม่ถูกต้องหรือหมดอายุ') {
       showToast('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่', 'error');
@@ -2065,10 +2212,13 @@ async function apiCall(action, data = {}) {
 
     return json;
   } catch(err) {
-    // Offline check
-    if (!navigator.onLine) {
-      showOfflineBanner(true);
-      throw new Error('ไม่มีการเชื่อมต่ออินเทอร์เน็ต');
+    if (!navigator.onLine) { showOfflineBanner(true); throw new Error('ไม่มีการเชื่อมต่ออินเทอร์เน็ต'); }
+    // retry ครั้งเดียวสำหรับ network error (ไม่ retry สำหรับ auth error)
+    if (!err.message.includes('Unauthorized') && !err.message.includes('HTTP 4')) {
+      try {
+        await new Promise(r => setTimeout(r, 1200));
+        return await fetchOnce();
+      } catch(e2) {}
     }
     throw err;
   }
@@ -2106,6 +2256,7 @@ const API = {
   updateBankAccount:      (data)   => apiCall('updateBankAccount', data),
   getVendors:             ()       => apiCall('getVendors'),
   addVendor:              (data)   => apiCall('addVendor', data),
+  updateVendor:           (data)   => apiCall('updateVendor', data),
   getUsers:               ()       => apiCall('getUsers'),
   addUser:                (data)   => apiCall('addUser', data),
   updateUser:             (data)   => apiCall('updateUser', data),
@@ -2358,10 +2509,12 @@ function renderAlerts(alerts) {
   container.innerHTML = alerts.map(a => {
     const cls  = a.status === 'error' ? 'alert-error' : a.status === 'warning' ? 'alert-warn' : 'alert-ok';
     const icon = a.status === 'error' ? '🔴' : a.status === 'warning' ? '🟡' : '✅';
+    // แปลง path.html?x=y เป็น hash route
+    const fixHref = a.fix ? a.fix.replace(/^([\w-]+)\.html(\?.*)?$/, (_, p, q) => '#/' + p + (q||'')) : '';
     return `<div class="alert-item ${cls}">
       <span class="alert-icon">${icon}</span>
       <div style="flex:1"><div class="alert-msg">${a.message}</div>${a.count ? `<div class="alert-detail">${a.count} รายการ</div>` : ''}</div>
-      ${a.fix ? `<a class="alert-fix" href="${a.fix}">แก้ไข</a>` : ''}
+      ${fixHref ? `<a class="alert-fix" href="${fixHref}">แก้ไข</a>` : ''}
     </div>`;
   }).join('');
 }
@@ -2859,37 +3012,44 @@ async function loadFiscalYearPage() {
 async function checkPendingRequest() {
   try {
     const res = await API.getPendingCloseRequest();
-    _pendingRequest = res.request || null;
+    // ตรวจว่า request มีอยู่จริงและมี requestId
+    _pendingRequest = (res.request && res.request.requestId) ? res.request : null;
 
     const dirBox   = document.getElementById('director-request-box');
     const blockBan = document.getElementById('block-banner');
     const pendMsg  = document.getElementById('admin-pending-msg');
 
     if (_pendingRequest) {
-      // มี pending → แสดง block banner
+      // มี pending request จริง → แสดง block banner
       if (blockBan) blockBan.style.display = 'flex';
 
-      // Director เห็น approve box
-      if (dirBox && user()?.role === 'director') {
-        dirBox.style.display = 'block';
-        const infoEl = document.getElementById('dir-request-info');
-        if (infoEl) infoEl.textContent = `ส่งโดย ${_pendingRequest.adminEmail} เมื่อ ${formatThaiDateTime(_pendingRequest.createdAt)}`;
+      // Director เห็น approve box เท่านั้น
+      if (dirBox) {
+        dirBox.style.display = user()?.role === 'director' ? 'block' : 'none';
+        if (user()?.role === 'director') {
+          const infoEl = document.getElementById('dir-request-info');
+          if (infoEl) infoEl.textContent = `ส่งโดย ${_pendingRequest.adminEmail} เมื่อ ${formatThaiDateTime(_pendingRequest.createdAt)}`;
+          // เปิดปุ่ม director approve (จะ disabled จน checklist ผ่าน)
+          const btnDir = document.getElementById('btn-director-approve');
+          if (btnDir) btnDir.disabled = false;
+        }
       }
 
       // Admin เห็นข้อความ รอ Director
       if (pendMsg && user()?.role === 'admin') {
         pendMsg.style.display = 'block';
-        // ซ่อนปุ่ม Admin confirm
         const btnAdmin = document.getElementById('btn-admin-confirm');
         if (btnAdmin) btnAdmin.style.display = 'none';
       }
 
-      // step2 = waiting
       setStepState(2, 'waiting', '⏳ รอผู้อำนวยการอนุมัติ');
     } else {
+      // ไม่มี pending → ซ่อนทั้งหมด
       if (blockBan) blockBan.style.display = 'none';
       if (dirBox)   dirBox.style.display   = 'none';
-      if (pendMsg)  pendMsg.style.display   = 'none';
+      if (pendMsg)  pendMsg.style.display  = 'none';
+      const btnAdmin = document.getElementById('btn-admin-confirm');
+      if (btnAdmin) btnAdmin.style.display = '';
     }
   } catch(e) { console.error('checkPendingRequest:', e); }
 }
@@ -2933,13 +3093,13 @@ function renderChecklist(result) {
     const cls    = failed ? 'failed' : 'passed';
     const icon   = failed ? '❌' : '✅';
     const fixMap = {
-      PENDING_DOCS:      'transactions.html?status=รอตรวจ',
-      NEGATIVE_CASH:     'transactions.html',
-      NEGATIVE_CAT:      'reports.html',
-      RECON_FAIL:        'reports.html#recon',
-      CONFIG_INCOMPLETE: 'settings.html',
-      ZERO_AMOUNT:       'transactions.html?amount=zero',
-      BALANCE_DIFF:      'reports.html#balance',
+      PENDING_DOCS:      '#/transactions?status=รอตรวจ',
+      NEGATIVE_CASH:     '#/transactions',
+      NEGATIVE_CAT:      '#/reports',
+      RECON_FAIL:        '#/bank-recon',
+      CONFIG_INCOMPLETE: '#/settings',
+      ZERO_AMOUNT:       '#/transactions?amount=zero',
+      BALANCE_DIFF:      '#/reports',
     };
     return `<div class="check-item ${cls}" id="check-${c.code}">
       <span class="check-icon">${icon}</span>
@@ -2969,11 +3129,14 @@ function updateStepStates(result) {
   // Step 3 — Director (locked จนกว่า Admin จะกด)
   if (!_pendingRequest) {
     setStepState(3, 'locked', '🔒 รอ Admin ยืนยันก่อน');
+    // ล็อกปุ่ม Director เสมอถ้ายังไม่มี pending
+    const btnDir3 = document.getElementById('btn-director-approve');
+    if (btnDir3) btnDir3.disabled = true;
   } else {
     setStepState(3, 'waiting', '⏳ รอ ผอ. อนุมัติ');
-    // Director เปิดปุ่ม approve
-    const btnDir = document.getElementById('btn-director-approve');
-    if (btnDir && user()?.role === 'director') btnDir.disabled = !result.ready;
+    // เปิดปุ่ม Director เฉพาะเมื่อมี pending request และ checklist ผ่าน
+    const btnDir3 = document.getElementById('btn-director-approve');
+    if (btnDir3 && user()?.role === 'director') btnDir3.disabled = !result.ready;
   }
 }
 
@@ -3072,19 +3235,76 @@ async function directorApprove() {
 
 // ---------- page: bank-accounts ----------
 let _editBank = null;
-  
+
+// Bank logo mapping (ไฟล์ภาพวางใน /images/ ของ repo)
+const BANK_LOGOS = {
+  'ธนาคารกรุงไทย':          'ธนาคารกรุงไทย.png',
+  'ธนาคารออมสิน':           'ธนาคารออมสิน.png',
+  'ธนาคารธกส':              'ธนาคารธกส.png',
+  'ธนาคารเกียรตินาคินภัทร': 'ธนาคารเกียรตินาคินภัทร.png',
+  'ธนาคารบัวหลวง':          'ธนาคารบัวหลวง.png',
+  'ธนาคารกรุงเทพ':          'ธนาคารกรุงเทพ.png',
+  'ธนาคารทหารไทย':          'ธนาคารทหารไทย.png',
+  'ธนาคารไทยพาณิชย์':       'ธนาคารไทยพาณิชย์.png',
+  'ธนาคารกสิกรไทย':         'ธนาคารกสิกรไทย.png',
+  'ธนาคารธนชาต':            'ธนาคารธนชาต.png',
+  'ธนาคารกรุงศรี':           'ธนาคารกรุงศรี.png',
+  // aliases สำหรับชื่อเก่า
+  'กรุงเทพ':    'ธนาคารกรุงเทพ.png',
+  'กสิกรไทย':  'ธนาคารกสิกรไทย.png',
+  'ไทยพาณิชย์':'ธนาคารไทยพาณิชย์.png',
+  'กรุงไทย':   'ธนาคารกรุงไทย.png',
+  'ออมสิน':    'ธนาคารออมสิน.png',
+};
+const BANK_IMAGES_PATH = 'images/';  // path ใน GitHub repo
+
+function getBankLogoUrl(bankName) {
+  const file = BANK_LOGOS[bankName] || BANK_LOGOS[Object.keys(BANK_LOGOS).find(k => bankName.includes(k.replace('ธนาคาร','').trim()))];
+  return file ? BANK_IMAGES_PATH + file : null;
+}
+
+function bankLogoHtml(bankName, size = 36) {
+  const url = getBankLogoUrl(bankName);
+  const abbr = (bankName || '').replace('ธนาคาร','').substring(0,3);
+  if (url) return `<img src="${url}" alt="${bankName}" class="bank-logo-circle" style="width:${size}px;height:${size}px" onerror="this.outerHTML='<div class=\\"bank-logo-fallback\\" style=\\"width:${size}px;height:${size}px\\">${abbr}</div>'">`;
+  return `<div class="bank-logo-fallback" style="width:${size}px;height:${size}px">${abbr}</div>`;
+}
+
+function updateBankLogo() {
+  const bankName = document.getElementById('b-bank').value;
+  const preview  = document.getElementById('bank-logo-preview');
+  const img      = document.getElementById('bank-logo-img');
+  const nameEl   = document.getElementById('bank-logo-name');
+  if (!bankName || !preview) return;
+  const url = getBankLogoUrl(bankName);
+  if (url) {
+    img.src = url;
+    img.alt = bankName;
+    nameEl.textContent = bankName;
+    preview.style.display = 'flex';
+    img.onerror = () => { preview.style.display = 'none'; };
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
   async function loadBanks() {
     const res = await API.getBankAccounts();
     const tbody = document.getElementById('bank-tbody');
     const isAdmin = getCurrentUser()?.role === 'admin';
-    tbody.innerHTML = (res.accounts || []).map(b => `<tr>
-      <td><code>${b['รหัสบัญชี']||b.id||''}</code></td>
-      <td>${b['ธนาคาร']||''}</td><td>${b['เลขที่บัญชี']||''}</td>
-      <td>${b['ชื่อบัญชี']||''}</td><td><span class="badge badge-info">${b['หมวดเงิน']||''}</span></td>
-      <td>${formatMoney(b['ยอดยกมา (บาท)']||0)}</td>
-      <td><span class="badge ${b['สถานะ']==='ใช้งาน'?'badge-success':'badge-muted'}">${b['สถานะ']||''}</span></td>
-      ${isAdmin ? `<td><button class="btn btn-sm btn-secondary" onclick='editBank(${JSON.stringify(b)})'>✏️</button></td>` : '<td></td>'}
-    </tr>`).join('');
+    tbody.innerHTML = (res.accounts || []).map(b => {
+      const bankName = b['ธนาคาร']||'';
+      return `<tr>
+        <td><code>${b['รหัสบัญชี']||b.id||''}</code></td>
+        <td><div class="bank-with-logo">${bankLogoHtml(bankName,32)}<span>${bankName}</span></div></td>
+        <td>${b['เลขที่บัญชี']||''}</td>
+        <td>${b['ชื่อบัญชี']||''}</td>
+        <td><span class="badge badge-info">${b['หมวดเงิน']||''}</span></td>
+        <td>${formatMoney(b['ยอดยกมา (บาท)']||0)}</td>
+        <td><span class="badge ${b['สถานะ']==='ใช้งาน'?'badge-success':'badge-muted'}">${b['สถานะ']||''}</span></td>
+        ${isAdmin ? `<td><button class="btn btn-sm btn-secondary" onclick='editBank(${JSON.stringify(b)})'>✏️</button></td>` : '<td></td>'}
+      </tr>`;
+    }).join('');
   }
   function editBank(b) {
     _editBank = b;
@@ -3121,6 +3341,8 @@ let _editBank = null;
 // ---------- page: vendors ----------
 let _allVendors = [];
   
+  let _editVendor = null;
+
   async function loadVendors() {
     const res = await API.getVendors();
     _allVendors = res.vendors || [];
@@ -3139,15 +3361,71 @@ let _allVendors = [];
       <td>${v['โทรศัพท์']||'—'}</td>
       <td style="font-size:.8rem">${v['บัญชีธนาคาร']||'—'}</td>
       <td style="font-size:.8rem;color:var(--text-muted)">${v['หมายเหตุ']||''}</td>
-      ${isAdmin ? '<td><button class="btn btn-sm btn-secondary" disabled>✏️</button></td>' : '<td></td>'}
+      ${isAdmin ? `<td><button class="btn btn-sm btn-secondary" onclick='editVendor(${JSON.stringify(v)})'>✏️ แก้ไข</button></td>` : '<td></td>'}
     </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>';
   }
+
+  function openAddVendorModal() {
+    _editVendor = null;
+    const titleEl = document.getElementById('vendor-modal-title');
+    if (titleEl) titleEl.textContent = 'เพิ่มผู้รับเงิน/ผู้ขาย';
+    ['v-row-index','v-vendor-id','v-name','v-taxid','v-address','v-phone','v-bankaccount','v-note'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    openModal('vendor-modal');
+  }
+
+  function editVendor(v) {
+    _editVendor = v;
+    const titleEl = document.getElementById('vendor-modal-title');
+    if (titleEl) titleEl.textContent = 'แก้ไขผู้รับเงิน/ผู้ขาย';
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    set('v-row-index',   v.rowIndex || '');
+    set('v-vendor-id',   v['รหัส'] || '');
+    set('v-name',        v['ชื่อผู้รับเงิน/ผู้ขาย'] || '');
+    set('v-taxid',       v['เลขประจำตัว/ภาษี'] || '');
+    set('v-address',     v['ที่อยู่'] || '');
+    set('v-phone',       v['โทรศัพท์'] || '');
+    set('v-bankaccount', v['บัญชีธนาคาร'] || '');
+    set('v-note',        v['หมายเหตุ'] || '');
+    openModal('vendor-modal');
+  }
+
   async function saveVendor() {
-    const data = { name: document.getElementById('v-name').value.trim(), taxId: document.getElementById('v-taxid').value, address: document.getElementById('v-address').value, phone: document.getElementById('v-phone').value, bankAccount: document.getElementById('v-bankaccount').value, note: document.getElementById('v-note').value };
-    if (!data.name) { showToast('กรอกชื่อก่อน','warning'); return; }
-    const res = await API.addVendor(data);
-    if (res.success) { showToast('เพิ่มสำเร็จ','success'); closeModal('vendor-modal'); loadVendors(); ['v-name','v-taxid','v-address','v-phone','v-bankaccount','v-note'].forEach(id => document.getElementById(id).value = ''); }
-    else showToast(res.error||'เกิดข้อผิดพลาด','error');
+    const name = document.getElementById('v-name').value.trim();
+    if (!name) { showToast('กรอกชื่อก่อน','warning'); return; }
+    const data = {
+      name, taxId: document.getElementById('v-taxid').value,
+      address: document.getElementById('v-address').value,
+      phone: document.getElementById('v-phone').value,
+      bankAccount: document.getElementById('v-bankaccount').value,
+      note: document.getElementById('v-note').value,
+    };
+    const btn = document.querySelector('#vendor-modal .btn-primary');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...'; }
+    try {
+      let res;
+      if (_editVendor) {
+        data.rowIndex = document.getElementById('v-row-index').value;
+        data.vendorId = document.getElementById('v-vendor-id').value;
+        res = await apiCall('updateVendor', data);
+        if (res.error && (res.error.includes('Unknown action') || res.error.includes('ไม่พบ'))) {
+          showToast('ระบบยังไม่รองรับการแก้ไข กรุณาแก้ไขโดยตรงใน Google Sheet', 'warning');
+          closeModal('vendor-modal'); return;
+        }
+      } else {
+        res = await API.addVendor(data);
+      }
+      if (res.success) {
+        showToast(_editVendor ? 'แก้ไขสำเร็จ' : 'เพิ่มสำเร็จ','success');
+        closeModal('vendor-modal');
+        _editVendor = null;
+        loadVendors();
+      } else {
+        showToast(res.error||'เกิดข้อผิดพลาด','error');
+      }
+    } catch(e) { showToast(e.message,'error'); }
+    finally { if (btn) { btn.disabled = false; btn.textContent = '💾 บันทึก'; } }
   }
 
 // ---------- page: reports ----------
@@ -3285,29 +3563,43 @@ async function loadRegisterData(type) {
 function renderRegister(rows) {
   const tbody = document.getElementById('reg-tbody');
   const countEl = document.getElementById('reg-count');
-  if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>';
+  if (!rows || !rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่มีข้อมูล (Sheet ยังไม่มีรายการ)</td></tr>';
     if (countEl) countEl.textContent = '0 รายการ';
     return;
   }
-  if (countEl) countEl.textContent = rows.length.toLocaleString() + ' รายการ';
-
+  // กรองเฉพาะแถวที่ไม่ใช่ header ซ้ำ (บางครั้ง GAS ส่ง header row มาเป็น data)
   const headers = Object.keys(rows[0]);
-  // สร้าง thead จาก headers จริง
-  document.getElementById('reg-thead').innerHTML = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+  const dataRows = rows.filter((r, i) => {
+    // ตรวจว่าแถวนี้ไม่ใช่ header row ซ้ำ
+    if (i === 0) return true;
+    const vals = Object.values(r);
+    return !vals.every((v, j) => String(v).trim() === headers[j].trim());
+  });
 
-  let runBalance = 0;
-  tbody.innerHTML = rows.map((r, i) => {
-    const isTotal = Object.values(r).some(v => String(v).includes('รวม') || String(v).includes('ยอด'));
-    return '<tr' + (isTotal ? ' style="font-weight:700;background:#f7faff"' : '') + '>' +
+  if (countEl) countEl.textContent = dataRows.length.toLocaleString() + ' รายการ';
+
+  // สร้าง thead จาก headers จริง
+  const thead = document.getElementById('reg-thead');
+  if (thead) thead.innerHTML = '<tr>' + headers.map(h => `<th>${h||''}</th>`).join('') + '</tr>';
+
+  tbody.innerHTML = dataRows.map((r, i) => {
+    const vals = Object.values(r);
+    const isTotal = vals.some(v => String(v).includes('รวม') || String(v).includes('ยอดรวม') || String(v).includes('คงเหลือ'));
+    return '<tr' + (isTotal ? ' style="font-weight:700;background:#f7faff;border-top:2px solid var(--border)"' : '') + '>' +
       headers.map(h => {
         const v = r[h];
-        if (typeof v === 'number') return `<td style="text-align:right">${formatMoney(v)}</td>`;
-        if ((h+'').toLowerCase().includes('วัน') || (h+'').toLowerCase().includes('date')) return `<td>${formatThaiDate(v)}</td>`;
-        if ((h+'').includes('ที่') && i === 0) return `<td>${i+1}</td>`;
+        // คอลัมน์ตัวเลข
+        if (typeof v === 'number' && !isNaN(v)) {
+          return `<td style="text-align:right">${v === 0 ? '—' : formatMoney(v)}</td>`;
+        }
+        // คอลัมน์วันที่
+        if ((h+'').toLowerCase().includes('วัน') || (h+'').toLowerCase().includes('date')) {
+          return `<td style="white-space:nowrap">${v ? formatThaiDate(v) : ''}</td>`;
+        }
         return `<td>${v !== null && v !== undefined ? v : ''}</td>`;
       }).join('') + '</tr>';
-  }).join('');
+  }).join('') || '<tr><td colspan="' + headers.length + '" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>';
 }
 
 function exportReg() {
@@ -3671,7 +3963,14 @@ const PAGES = {
   else switchTab('daily');
   } },
   'register-report': { roles: null, init: async function() {
+  // ไม่ reset _regData ทุกครั้ง เพื่อ cache ข้อมูลที่โหลดแล้ว
+  // แต่ถ้า navigate มาใหม่ให้ reset
   _regData = {};
+  _currentRegTab = 'นอกงบ';
+  // reset tab UI
+  document.querySelectorAll('#page-register-report .tab-btn').forEach(b => b.classList.remove('active'));
+  const firstTab = document.getElementById('tab-นอกงบ');
+  if (firstTab) firstTab.classList.add('active');
   loadRegisterData('นอกงบ');
   } },
   'bank-recon': { roles: null, init: async function() {
