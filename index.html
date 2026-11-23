@@ -1735,6 +1735,15 @@ const GOOGLE_CLIENT_ID = '896724932741-rf7udn0flhj0un5roht9ra3p8gdvqurv.apps.goo
 
 const FALLBACK_GAS_URL = 'https://script.google.com/macros/s/AKfycby2ya1pNEt5WCqUPtd7d81g7ghy-Jc-T9VVEx28FZSWPavf0qtj1Iy7159L8Oh6JbmDpw/exec';
 
+// ตรวจว่าเป็นลิงก์ Web App แบบ /exec จริง ๆ — กัน config เก่า/ลิงก์ /dev มาทับจนต่อหลังบ้านไม่ได้ ("Failed to fetch")
+const GAS_URL_PATTERN = /^https:\/\/script\.google\.com\/(?:a\/macros\/[^/]+|macros)\/s\/[^/]+\/exec$/;
+function isValidGasUrl(u) { return typeof u === 'string' && GAS_URL_PATTERN.test(u.trim()); }
+function applyConfig(cfg) {
+  const safe = Object.assign({}, cfg);
+  if (!isValidGasUrl(safe.gasUrl)) delete safe.gasUrl;
+  Object.assign(window.AppConfig, safe, { loaded: true });
+}
+
 window.AppConfig = {
   gasUrl:            FALLBACK_GAS_URL,
   currentSheetId:    '14L7bOGl22C1OPktXf4EPtF5UToOY1bTyxtUEAQIe76A',
@@ -1751,7 +1760,7 @@ async function loadSystemConfig() {
   if (cached && (Date.now() - cacheAge) < CACHE_TTL) {
     try {
       const cfg = JSON.parse(cached);
-      Object.assign(window.AppConfig, cfg, { loaded: true });
+      applyConfig(cfg);
       return window.AppConfig;
     } catch(e) {}
   }
@@ -1763,7 +1772,7 @@ async function loadSystemConfig() {
     });
     if (!res.ok) throw new Error('config fetch failed: ' + res.status);
     const cfg = await res.json();
-    Object.assign(window.AppConfig, cfg, { loaded: true });
+    applyConfig(cfg);
     sessionStorage.setItem('system_config', JSON.stringify(cfg));
     sessionStorage.setItem('system_config_ts', String(Date.now()));
     return window.AppConfig;
@@ -1776,7 +1785,7 @@ async function loadSystemConfig() {
         if (r2.ok) {
           const cfg2 = await r2.json();
           if (cfg2.gasUrl) {
-            Object.assign(window.AppConfig, cfg2, { loaded: true });
+            applyConfig(cfg2);
             sessionStorage.setItem('system_config', JSON.stringify(cfg2));
             sessionStorage.setItem('system_config_ts', String(Date.now()));
             return window.AppConfig;
@@ -2022,6 +2031,8 @@ async function handleGoogleSignIn(idToken) {
   try {
     const res = await fetch(window.AppConfig.gasUrl + '?action=login', {
       method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'login', idToken }),
     });
     const data = await res.json();
@@ -2040,7 +2051,13 @@ async function handleGoogleSignIn(idToken) {
     redirectByRole(data.user.role);
 
   } catch(err) {
-    showLoginError('เกิดข้อผิดพลาด: ' + err.message);
+    resetConfigCache(); // ล้าง config ที่แคชไว้ ครั้งหน้าจะโหลดใหม่
+    const msg = String((err && err.message) || err);
+    if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+      showLoginError('เชื่อมต่อระบบหลังบ้านไม่ได้ (Failed to fetch) — ตรวจว่า Web App ตั้งสิทธิ์เป็น "Anyone" และลิงก์ /exec ถูกต้อง');
+    } else {
+      showLoginError('เกิดข้อผิดพลาด: ' + msg);
+    }
   } finally {
     showLoginLoading(false);
   }
