@@ -1797,6 +1797,23 @@ async function loadSystemConfig() {
   }
 }
 
+// ดึงปีงบประมาณ "สด" จากชีตตั้งค่า (ไม่พึ่งไฟล์ config บน Drive ที่อาจเก่า)
+async function refreshLiveConfig() {
+  try {
+    if (!isValidGasUrl(window.AppConfig.gasUrl)) return;
+    const res = await fetch(window.AppConfig.gasUrl + '?action=getConfig&token=public&_t=' + Date.now(), { cache: 'no-store' });
+    const cfg = await res.json();
+    const fy = parseInt(cfg.fiscalYear, 10);
+    if (fy > 2500) {
+      window.AppConfig.currentFiscalYear = fy;
+      ['fiscal-year-display', 'fy-year-display'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.textContent = fy;
+      });
+    }
+    if (cfg.backendVersion) window.AppConfig.backendVersion = cfg.backendVersion;
+  } catch(e) {}
+}
+
 function resetConfigCache() {
   sessionStorage.removeItem('system_config');
   sessionStorage.removeItem('system_config_ts');
@@ -3015,6 +3032,7 @@ let _pendingRequest = null;
 const user = () => getCurrentUser();
 
 async function loadFiscalYearPage() {
+  await refreshLiveConfig();
   // แสดงปีงบ
   const fyEl = document.getElementById('fy-year-display');
   if (fyEl) fyEl.textContent = window.AppConfig.currentFiscalYear || '';
@@ -3525,36 +3543,49 @@ async function loadMonthlyReport() {
 }
 
 async function loadReconReport() {
-  document.getElementById('recon-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:16px">กำลังโหลด...</td></tr>';
+  const tbody   = document.getElementById('recon-tbody');
+  const summary = document.getElementById('recon-summary');
+  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:16px">กำลังโหลด...</td></tr>';
   try {
     const res = await API.getBankRecon();
-    _tabData['recon'] = res.rows || [];
-    const tbody = document.getElementById('recon-tbody');
-    let allOk = true;
-    if (!res.rows?.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>'; return; }
-    const rHeaders = Object.keys(res.rows[0]);
-    setTableHead('recon-tbody', rHeaders);
-    let hasMismatch = false;
-    tbody.innerHTML = res.rows.map(r => {
-      const headers = rHeaders;
-      const statusKey = headers.find(h => h.includes('สถานะ') || h.includes('status'));
-      const status = statusKey ? r[statusKey] : '—';
+    // ตัดบรรทัดคำอธิบายท้ายชีต (มีข้อความช่องเดียว) ออก เหลือเฉพาะบัญชีจริง + แถวรวม
+    const rows = (res.rows || []).filter(r =>
+      Object.values(r).filter(v => v !== '' && v !== null && v !== undefined).length >= 2);
+    _tabData['recon'] = rows;
+    const isTotal  = r => String(Object.values(r)[0] || '').trim().startsWith('รวม');
+    const accounts = rows.filter(r => !isTotal(r));
+
+    if (!accounts.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">ยังไม่มีบัญชีธนาคารที่ใช้งาน — เพิ่มบัญชีที่ชีต "ข้อมูลบัญชีธนาคาร" ก่อน</td></tr>';
+      if (summary) summary.innerHTML = '';
+      return;
+    }
+
+    const headers   = Object.keys(accounts[0]);
+    const statusKey = headers.find(h => h.includes('สถานะ') || h.includes('status'));
+    setTableHead('recon-tbody', headers);
+
+    let allOk = true, hasMismatch = false;
+    tbody.innerHTML = rows.map(r => {
+      const total = isTotal(r);
+      const status = statusKey ? r[statusKey] : '';
       const isOk      = status === 'ตรงกัน';
       const isPending = status === 'ยังไม่กระทบ';
-      if (!isOk) allOk = false;
-      if (!isOk && !isPending) hasMismatch = true;
-      return '<tr>' + headers.map(h => {
+      if (!total) {
+        if (!isOk) allOk = false;
+        if (!isOk && !isPending) hasMismatch = true;
+      }
+      return `<tr ${total ? 'style="font-weight:700;background:#f7faff"' : ''}>` + headers.map(h => {
         const v = r[h];
-        if (h === statusKey) {
+        if (h === statusKey && !total) {
           const cls = isOk ? 'status-ok' : 'status-fail';
           return `<td class="${cls}">${isOk ? '✅' : (isPending ? '⏳' : '❌')} ${v}</td>`;
         }
         if (typeof v === 'number') return `<td style="text-align:right">${formatMoney(v)}</td>`;
-        return `<td>${v||''}</td>`;
+        return `<td>${v === null || v === undefined ? '' : v}</td>`;
       }).join('') + '</tr>';
     }).join('');
-    // Summary
-    const summary = document.getElementById('recon-summary');
+
     if (summary) {
       summary.innerHTML = allOk
         ? '<div class="alert-item alert-ok"><span class="alert-icon">✅</span><span class="alert-msg">กระทบยอดธนาคารทุกบัญชีตรงกัน</span></div>'
@@ -4127,6 +4158,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (params.get('error') === 'unauthorized')    showLoginError('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
 
   await loadSystemConfig();
+  refreshLiveConfig(); // ไม่ต้องรอ — อัปเดตปีงบเมื่อมาถึง
 
   if (isLoggedIn()) {
     showApp();
