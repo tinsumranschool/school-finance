@@ -1767,8 +1767,7 @@ async function loadSystemConfig() {
   try {
     // บังคับ no-cache เพื่อให้ได้ config ล่าสุดจาก GAS เสมอ
     const res = await fetch(SYSTEM_CONFIG_URL + '&_t=' + Date.now(), {
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache' }
+      cache: 'no-store'
     });
     if (!res.ok) throw new Error('config fetch failed: ' + res.status);
     const cfg = await res.json();
@@ -2204,13 +2203,14 @@ async function apiCall(action, data = {}) {
     let res;
     if (isGet) {
       const params = new URLSearchParams({ action, token, ...data });
+      // ห้ามใส่ custom header (เช่น Cache-Control) — เบราว์เซอร์จะส่ง preflight (OPTIONS) ซึ่ง Apps Script ไม่รองรับ → "Failed to fetch"
       res = await fetch(`${url}?${params}&_t=${Date.now()}`, {
-        method: 'GET', redirect: 'follow',
-        headers: { 'Cache-Control': 'no-cache' },
+        method: 'GET', redirect: 'follow', cache: 'no-store',
       });
     } else {
       res = await fetch(url, {
         method: 'POST', redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action, token, ...data }),
       });
     }
